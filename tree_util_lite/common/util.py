@@ -1,11 +1,17 @@
+import sys
 import os
 import functools
 import time
 import json
 import re
 import shutil
-from pathlib2 import Path
-from pprint import pprint
+
+if sys.version_info[0] == 3:
+    from pathlib import Path, PurePath
+else:
+    from pathlib2 import Path, PurePath
+from pprint import pformat
+
 from . import config
 
 CFG_DICT = config.CFG_DICT
@@ -28,8 +34,14 @@ def _time_measure(func):
 
 
 def _log_message(args):
+    def fstr(s):
+        if type(s) is str:
+            return s
+        else:
+            return '\n' + pformat(s)
+
     _log_indent = 0
-    message = ''.join([str(a) for a in args])
+    message = ''.join([fstr(a) for a in args])
     return (''.join([' ' for i in range(_log_indent * 4)]), message)
 
 

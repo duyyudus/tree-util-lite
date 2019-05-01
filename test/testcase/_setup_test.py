@@ -1,16 +1,14 @@
 import sys
-import os
-import shutil
 import unittest
-from pprint import pprint
 from pathlib2 import Path
 
 # Append parent directory of `binary_vcs_lite` package
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 
-from tree_diff_engine.common.util import *
+from tree_util_lite.common.util import *
 
+from tree_util_lite.core import tree
 
 TEST_ROOT = Path(__file__).resolve().parent.parent
 
