@@ -1,11 +1,15 @@
-# tree-diff-engine
+# tree-util-lite
 
-Generic Python implementation of most popular tree-diff / tree-edit-distance algorithms.
+A comprehensive generic ordered-tree data structure implementation in Python, designed with easy to use API and developer friendly.
 
-Come with an intuitive and easy to use API, it aims to be a general purpose diff engine for tasks involve comparison of **rooted-ordered-tree** data structures.
+In fact, I made it for myself at first, after being tired of reinventing the wheel everytime I work on tree-like data.
 
-### Example use cases:
+It also come with Zhang Shasha tree-edit-distance algorithm, would be helpful for comparing trees.
 
+### Example usages:
+
+ * Representing hierarchical data
  * Detect changes in file/folder structures
+ * Compare states in version control system
  * Differences between 3D scene hierarchies
  * So on...
