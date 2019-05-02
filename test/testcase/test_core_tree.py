@@ -369,6 +369,8 @@ class TestCoreTree(unittest.TestCase):
         self.assertEqual([n.label for n in root.children], ['a', 'c_inserted'])
         self.assertEqual(b1.parent, None)
         self.assertEqual(b2.parent, None)
+        self.assertEqual(b2.is_isolated, 0)
+        self.assertEqual(b.is_isolated, 1)
 
         # Test remove children
         b2.remove_children('b2a')
@@ -381,13 +383,16 @@ class TestCoreTree(unittest.TestCase):
         a1a.delete()
         self.assertEqual([n.label for n in a1.children], ['a1a1', 'a1a2'])
         self.assertEqual(a1a2.parent, a1)
+        a1.isolate()
+        self.assertEqual(a1a2.is_isolated, 1)
+        self.assertEqual([n.label for n in a.children], ['a2'])
 
         # Test cut node
         a.cut()
         self.assertEqual([n.label for n in root.children], ['c_inserted'])
         root.render_subtree()
 
-    def test_tree_operation(self):
+    def test_tree_property(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
 
@@ -395,6 +400,64 @@ class TestCoreTree(unittest.TestCase):
         new_root = Node('new_root')
         new_root.add_children(root)
         self.assertEqual(t.root, new_root)
+
+    def test_tree_operation(self):
+        log_info()
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+
+        # Test ls
+        self.assertEqual(
+            t.ls(return_label=1),
+            [
+                'root',
+                'a',
+                'b',
+                'c',
+                'a1',
+                'a2',
+                'b1',
+                'b2',
+                'c1',
+                'c2',
+                'a1a',
+                'a2a',
+                'b1a',
+                'b2a',
+                'b2b',
+                'a1a1',
+                'a1a2',
+            ]
+        )
+        self.assertEqual(
+            t.ls(a, return_label=1),
+            [                
+                'a1',
+                'a2',
+                'a1a',
+                'a2a',
+                'a1a1',
+                'a1a2',
+            ]
+        )
+        self.assertEqual(
+            t.ls(pattern='*1a1', return_label=1),
+            [
+                'a1a1',
+            ]
+        )
+        self.assertEqual(
+            t.ls(b, pattern='b/b2/*', return_label=1),
+            [                
+                'b2a',
+                'b2b',
+            ]
+        )
+        self.assertEqual(
+            t.ls(pattern='root/c/c1', return_label=1),
+            [
+                'c1',
+            ]
+        )
 
 
 def _print_visited_node(node):

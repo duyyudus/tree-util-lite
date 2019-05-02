@@ -51,6 +51,7 @@ class Node(object):
         children (list of core.tree.Node):
         ancestor (list of core.tree.Node):
         descendant (list of core.tree.Node):
+        sibling (list of core.tree.Node):
         child_count (int):
         depth (int):
         level (int):
@@ -58,6 +59,7 @@ class Node(object):
         is_leaf (bool):
         is_branch (bool):
         is_root (bool):
+        is_isolated (bool):
         data (dict):
 
     Methods:
@@ -166,6 +168,10 @@ class Node(object):
         return 1 if not self._parent else 0
 
     @property
+    def is_isolated(self):
+        return not self.parent and not self.children
+
+    @property
     def parent(self):
         """core.tree.Node: """
         return self._parent
@@ -187,7 +193,7 @@ class Node(object):
     @property
     def descendant(self):
         """list of core.tree.Node: """
-        return self.traverse_preorder()[1:]
+        return self.traverse_levelorder()[1:]
 
     @property
     def sibling(self):
@@ -222,7 +228,7 @@ class Node(object):
 
         for n in self.children:
             if n.label == node.label and n is not node:
-                msg = 'There is already a child with label "{}" in "{}"'.format(n.label, self.nice_path)
+                msg = 'There is already a child with label "{}" under "{}"'.format(n.label, self.nice_path)
                 raise LabelClashing(msg)
         if node in self.ancestor:
             msg = '"{}" is ancestor of "{}"'.format(node.nice_path, self.nice_path)
@@ -245,7 +251,7 @@ class Node(object):
 
         for n in node.children:
             if n.label == self.label and n is not self:
-                msg = 'There is already a child with label "{}" in "{}"'.format(self.label, node.nice_path)
+                msg = 'There is already a child with label "{}" under "{}"'.format(self.label, node.nice_path)
                 raise LabelClashing(msg)
         if node in self.descendant:
             msg = '"{}" is descendant of "{}"'.format(node.nice_path, self.nice_path)
@@ -649,19 +655,39 @@ class Tree(object):
         root = self._root if not self._root.parent else self._root.ancestor[-1]
         return root
 
-    def ls(self, node, pattern):
-        """List nodes in tree.
+    def ls(self, node=None, pattern=None, return_label=0):
+        """List nodes in tree using level-order traversal.
+
+        List all nodes by default.
 
         Args:
-            node (core.tree.Node): list descendant of this node
+            node (core.tree.Node): list descendant of `node`
                 None for list all nodes in tree
-            pattern (str): regex pattern
+            pattern (str): glob pattern
+                If relative, the path can be either relative or absolute,
+                and matching is done from the right
+                Example:
+                    'a/b.py' match '*.py'
+                    '/a/b/c.py' does not match 'a/*.py'
+                If absolute, the path must be absolute, and the whole path must match
+                Example:
+                    '/a.py' match '/*.py'
+                    'a/b.py' does not match '/*.py'
+            return_label (bool): return list of node labels
 
         Returns:
             list of core.tree.Node:
         """
 
-        return []
+        if not isinstance(node, Node) and node is not None:
+            msg = '"{}" must be an instance of `{}` or `None`'.format(str(node), type(Node))
+            raise InvalidNode(msg)
+
+        listed_nodes = node.descendant if node else [self.root] + self.root.descendant
+        if pattern:
+            listed_nodes = [n for n in listed_nodes if n.node_path.match(pattern)]
+
+        return [n.label if return_label else n for n in listed_nodes]
 
     def search(self, node_path):
         """Search for a node using its label or node path in tree.
