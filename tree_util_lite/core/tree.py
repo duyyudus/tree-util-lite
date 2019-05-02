@@ -3,24 +3,36 @@ from tree_util_lite.common.util import *
 _STOP_TRAVERSAL = 0xffffffffffff
 
 
-class InvalidBehavior(Exception):
-    """Invalid behavior on Node."""
+class TreeError(Exception):
+    """Base error for tree-related operations."""
+
+    def __init__(self, message):
+        super(TreeError, self).__init__()
+        self._message = message
+        log_error('{}'.format(message))
+
+    def __str__(self):
+        return self._message
 
 
-class SameNode(Exception):
+class AddAncestorAsChild(TreeError):
+    """Adding ancestor of a node to its children list is forbidden."""
+
+
+class SetDescendantAsParent(TreeError):
+    """Setting descendant of a node as new parent is forbidden."""
+
+
+class SameNode(TreeError):
     """Name point to the same node."""
 
 
-class InvalidNode(Exception):
+class InvalidNode(TreeError):
     """Invalid Node."""
 
 
-class LabelClashing(Exception):
+class LabelClashing(TreeError):
     """Name clashing when add child Node."""
-
-    def __init__(self, label):
-        super(LabelClashing, self).__init__()
-        log_error('There is already a child Node with name "{}"'.format(label))
 
 
 class Node(object):
@@ -52,12 +64,14 @@ class Node(object):
         relabel
         set_parent
         add_children
+        remove_children
         add_subpath
         contain_subpath
         traverse_preorder
         traverse_postorder
         traverse_levelorder
-        render_tree
+        render_subtree
+        isolate
         insert
         delete
         cut
@@ -106,6 +120,10 @@ class Node(object):
             parts.insert(0, cur_parent.label)
             cur_parent = cur_parent.parent
         return Path(*parts)
+
+    @property
+    def nice_path(self):
+        return self.node_path.as_posix()
 
     @property
     def depth(self):
@@ -168,21 +186,79 @@ class Node(object):
 
     @property
     def descendant(self):
+        """list of core.tree.Node: """
         return self.traverse_preorder()[1:]
 
+    @property
+    def sibling(self):
+        """list of core.tree.Node: """
+        return [n for n in self._parent.children if n is not self]
+
     def _validate_node(self, node):
-        if node == self:
-            raise SameNode()
-        elif node == None:
+        """Make sure `node` is valid for `self` to operate on."""
+
+        if node is None:
             return 0
+        if node is self:
+            raise SameNode('"{}" is the same as "{}"'.format(node.nice_path, self.nice_path))
         elif not isinstance(node, Node):
-            raise InvalidNode()
+            raise InvalidNode('"{}" must be an instance of `{}`'.format(str(node), type(Node)))
         else:
             return 1
 
+    def _validate_child(self, node):
+        """Check if a node is qualified to be added as child of `self`.
+
+        Statisfy condition
+            `node.label` do not clash among nodes in `self.children`.
+            `node` does not belong to `self.ancestor`
+
+        Args:
+            node (core.tree.Node):
+        """
+
+        if not isinstance(node, Node):
+            raise InvalidNode('"{}" must be an instance of `{}`'.format(str(node), type(Node)))
+
+        for n in self.children:
+            if n.label == node.label and n is not node:
+                msg = 'There is already a child with label "{}" in "{}"'.format(n.label, self.nice_path)
+                raise LabelClashing(msg)
+        if node in self.ancestor:
+            msg = '"{}" is ancestor of "{}"'.format(node.nice_path, self.nice_path)
+            raise AddAncestorAsChild(msg)
+        return 1
+
+    def _validate_parent(self, node):
+        """Check if a node is qualified to be set as parent of `self`.
+
+        Statisfy condition
+            `self.label` do not clash among nodes in `node.children`.
+            `node` does not belong to `self.descendant`
+
+        Args:
+            node (core.tree.Node):
+        """
+
+        if not isinstance(node, Node):
+            raise InvalidNode('"{}" must be an instance of `{}`'.format(str(node), type(Node)))
+
+        for n in node.children:
+            if n.label == self.label and n is not self:
+                msg = 'There is already a child with label "{}" in "{}"'.format(self.label, node.nice_path)
+                raise LabelClashing(msg)
+        if node in self.descendant:
+            msg = '"{}" is descendant of "{}"'.format(node.nice_path, self.nice_path)
+            raise SetDescendantAsParent(msg)
+        return 1
+
     def relabel(self, label):
         """Relabel node after checking for label clashing."""
-        pass
+
+        sibling_labels = [n.label for n in self.sibling]
+        if label in sibling_labels:
+            raise LabelClashing('There is already a sibling with label "{}"'.format(label))
+        self._label = label
 
     def set_parent(self, parent):
         """
@@ -190,7 +266,13 @@ class Node(object):
             parent (core.tree.Node):
         """
 
+        if parent is None:
+            self._parent = None
+
         if not self._validate_node(parent):
+            return 0
+
+        if not self._validate_parent(parent):
             return 0
 
         # Remove `self` as child from current parent of `self`
@@ -203,8 +285,8 @@ class Node(object):
 
         if self._verbose:
             log_info('"{}" set "{}" as parent'.format(
-                self.node_path,
-                parent.node_path
+                self.nice_path,
+                parent.nice_path
             ))
 
         if self not in parent.children:
@@ -212,7 +294,8 @@ class Node(object):
         return 1
 
     def add_children(self, *args):
-        """
+        """Add multiple nodes as children.
+
         Args:
             args (list): mixed list of [str, core.tree.Node]
         """
@@ -224,6 +307,9 @@ class Node(object):
             if not self._validate_node(child):
                 continue
 
+            if not self._validate_child(child):
+                continue
+
             for n in self._children:
                 if n.label == child.label:
                     continue
@@ -231,14 +317,33 @@ class Node(object):
 
             if self._verbose:
                 log_info('"{}" added "{}" as child'.format(
-                    self.node_path,
-                    child.node_path
+                    self.nice_path,
+                    child.nice_path
                 ))
 
             if child.parent != self:
                 child.set_parent(self)
             ret.append(child)
         return ret
+
+    def remove_children(self, *args):
+        """Remove multiple child nodes from `self`.
+
+        Subtrees of children are kept intact.
+
+        Args:
+            args (list): mixed list of [str, core.tree.Node]
+        """
+
+        children_labels = [a for a in args if isinstance(a, str) and a]
+        for n in self._children:
+            if n.label in children_labels:
+                self._children.remove(n)
+
+        children = [a for a in args if isinstance(a, Node) and a]
+        for n in self._children:
+            if n in children:
+                self._children.remove(n)
 
     def add_subpath(self, *args):
         """
@@ -300,17 +405,20 @@ class Node(object):
                         visited: arbitrary value,
                         bool: stop traversal flag
                     )
-                Default:
-                    lambda node: (node, 0)
+                By default, return (node, 0)
+
         Returns:
             list: list of visited node, the last one is "the one" node stop the traversal
         """
 
+        def default_func(node):
+            return node, 0
+
         if self._verbose:
-            log_info('Start pre-order traversal on "{}"..'.format(self.node_path))
+            log_info('Start pre-order traversal on "{}"..'.format(self.nice_path))
 
         if not func:
-            func = lambda node: (node, 0)
+            func = default_func
 
         def _preorder(node, func):
             discovered = []
@@ -350,11 +458,14 @@ class Node(object):
             list: list of visited node, the last one is "the one" node stop the traversal
         """
 
+        def default_func(node):
+            return node, 0
+
         if self._verbose:
-            log_info('Start post-order traversal on "{}"..'.format(self.node_path))
+            log_info('Start post-order traversal on "{}"..'.format(self.nice_path))
 
         if not func:
-            func = lambda node: (node, 0)
+            func = default_func
 
         def _postorder(node, func):
             discovered = []
@@ -394,11 +505,14 @@ class Node(object):
             list: list of visited node, the last one is "the one" node stop the traversal
         """
 
+        def default_func(node):
+            return node, 0
+
         if self._verbose:
-            log_info('Start level-order traversal on "{}"..'.format(self.node_path))
+            log_info('Start level-order traversal on "{}"..'.format(self.nice_path))
 
         if not func:
-            func = lambda node: (node, 0)
+            func = default_func
 
         discovered = []
         queue = [self]
@@ -418,14 +532,36 @@ class Node(object):
 
         return discovered
 
-    def render_tree(self):
+    def render_subtree(self):
+        cur_root_depth = self.depth
+
         def print_indent(node):
-            print('|---' * node.depth + node.label)
+            print('|---' * (node.depth - cur_root_depth) + node.label)
             return 0, 0
+
         self.traverse_preorder(print_indent)
+
+    def isolate(self):
+        """Isolate `self` from its connected nodes if any.
+
+        Steps:
+            Remove `self` from `self.parent.children`
+            Set `self.parent` to None
+            Set parent of all items in `self.children` to None
+            Make `self.children` empty
+        """
+
+        if self in self.parent.children:
+            self.parent.children.remove(self)
+        self.set_parent(None)
+        for n in self._children:
+            n.set_parent(None)
+        self._children = []
 
     def insert(self, node, below=0):
         """Insert a new node at position right above `self`, make it new parent of `self`.
+
+        `node` will be isolated from its tree ( if any ) before inserted.
 
         Args:
             node (str or core.tree.Node): node to be inserted
@@ -437,19 +573,35 @@ class Node(object):
             core.tree.Node:
         """
 
-        return None
+        if isinstance(node, Node):
+            node.isolate()
+        elif isinstance(node, str):
+            node = Node(node)
+        else:
+            raise InvalidNode('"{}" must be `str` or `{}`'.format(str(node), type(Node)))
+
+        cur_parent = self.parent
+        self.set_parent(node)
+        node.set_parent(cur_parent)
+
+        return node
 
     def delete(self):
-        """Delete `self` from linked nodes chain ( tree ).
-        `self.children` will be re-parented to `self.parent`
+        """Delete `self` from linked nodes chain ( tree ),
+        `self.children` will be re-parented to `self.parent`.
         """
 
-        pass
+        cur_parent = self.parent
+        cur_children = self.children
+        self.isolate()
+        cur_parent.add_children(*cur_children)
 
     def cut(self):
         """Disconnect `self` from its parent."""
 
-        pass
+        if self in self.parent.children:
+            self.parent.children.remove(self)
+        self.set_parent(None)
 
 
 class Tree(object):

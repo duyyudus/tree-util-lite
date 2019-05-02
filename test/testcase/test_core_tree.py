@@ -69,9 +69,9 @@ class TestCoreTree(unittest.TestCase):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
 
-        root.render_tree()
+        root.render_subtree()
         log_info()
-        a.render_tree()
+        a.render_subtree()
         log_info()
 
         # pre-order, stop at "b1"
@@ -289,14 +289,109 @@ class TestCoreTree(unittest.TestCase):
             set([])
         )
 
+        self.assertEqual(
+            [n.label for n in b.sibling],
+            ['a', 'c']
+        )
+        self.assertEqual(
+            [n.label for n in a1.sibling],
+            ['a2']
+        )
+
+    def test_node_operation_error(self):
+        log_info()
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+
+        # Test error scenarios when add children and set parent
+        try:
+            a.add_children('a2')
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.LabelClashing))
+        try:
+            Node('a1a').set_parent(a1)
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.LabelClashing))
+        try:
+            b.relabel('b')
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.LabelClashing))
+
+        try:
+            a1.set_parent(a1a2)
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.SetDescendantAsParent))
+        try:
+            c.set_parent(c1)
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.SetDescendantAsParent))
+
+        try:
+            b1a.add_children(b)
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.AddAncestorAsChild))
+        try:
+            a1.add_children(root)
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.AddAncestorAsChild))
+
+        try:
+            a2a.add_children(a2a)
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.SameNode))
+        try:
+            b.set_parent(b)
+        except Exception as e:
+            self.assertTrue(isinstance(e, tree.SameNode))
+
     def test_node_operation(self):
-        pass
+        log_info()
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        b1, b2 = b.children
+
+        # Test relabel
+        b.relabel('b_relabeled')
+        self.assertEqual(
+            [n.label for n in root.children],
+            ['a', 'b_relabeled', 'c']
+        )
+        b.relabel('b')
+
+        # Test insert node
+        c_inserted = c.insert('c_inserted')
+        self.assertEqual([n.label for n in root.children], ['a', 'b', 'c_inserted'])
+        self.assertEqual([n.label for n in c_inserted.children], ['c'])
+        self.assertEqual(c.parent, c_inserted)
+
+        # Test isolate node
+        b.isolate()
+        self.assertEqual(b.parent, None)
+        self.assertEqual(b.children, [])
+        self.assertEqual([n.label for n in root.children], ['a', 'c_inserted'])
+        self.assertEqual(b1.parent, None)
+        self.assertEqual(b2.parent, None)
+
+        # Test remove children
+        b2.remove_children('b2a')
+        self.assertEqual([n.label for n in b2.children], ['b2b'])
+        c.remove_children(c1, 'c2')
+        self.assertEqual([n.label for n in c.children], [])
+
+        # Test delete node
+        a1a = a1.children[0]
+        a1a.delete()
+        self.assertEqual([n.label for n in a1.children], ['a1a1', 'a1a2'])
+        self.assertEqual(a1a2.parent, a1)
+
+        # Test cut node
+        a.cut()
+        self.assertEqual([n.label for n in root.children], ['c_inserted'])
+        root.render_subtree()
 
     def test_tree_operation(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
 
-        self.assertEqual(t.root, root)
+        self.assertEqual(root, root)
         new_root = Node('new_root')
         new_root.add_children(root)
         self.assertEqual(t.root, new_root)
