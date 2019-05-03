@@ -12,6 +12,7 @@ By `tree_util_lite.core.tree.Node`
 
 **Properties**
 
+ * `verbose` (bool):
  * `label` (str):
  * `path` (Path):
  * `parent` (Node):
@@ -31,6 +32,7 @@ By `tree_util_lite.core.tree.Node`
 
 **Operations**
 
+ * `set_verbose()`
  * `relabel()`
  * `set_parent()`
  * `add_children()`
@@ -57,11 +59,14 @@ By `tree_util_lite.core.tree.Tree`
 
 **Operations**
 
+ * `build_tree()`
  * `ls()`
  * `search()`
+ * `contain_path()`
  * `insert()`
  * `delete()`
  * `lowest_common_ancestor()`
+ * `render_tree()`
 
 ## Example usages:
 
