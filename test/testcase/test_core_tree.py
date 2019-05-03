@@ -28,7 +28,7 @@ class TestCoreTree(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCoreTree, self).__init__(*args, **kwargs)
 
-    def test_tree_construction(self, verbose=1):
+    def test_tree_basic_construction(self, verbose=1):
         log_info()
         t = Tree('test_tree', 'root', verbose=verbose)
         root = t.root
@@ -37,7 +37,7 @@ class TestCoreTree(unittest.TestCase):
         a1, a1a, a1a1 = a.add_subpath('a1/a1a/a1a1')
         a1, a1a, a1a2 = a.add_subpath(Path('a1/a1a'), 'a1a2')
 
-        a2, a2a = a.add_subpath(Node('a2'), 'a2a')
+        a2, a2a = a.add_subpath('a2', 'a2a')
 
         self.assertTrue(root.contain_subpath('a/a1/a1a/a1a1'))
         self.assertTrue(root.contain_subpath('a/a1/a1a/a1a1'))
@@ -65,9 +65,62 @@ class TestCoreTree(unittest.TestCase):
 
         return t, root, a, b, c, a1, a1a2, a2a, b1a, c1
 
+    def test_tree_advance_construction(self):
+        log_info()
+
+        # Build from list of paths
+        paths = [
+            'a/a1/a1a/a1a1',
+            'a/a1/a1a/a1a2',
+            'a/a2/a2a',
+            'b/b1/b1a',
+            'b/b2/b2a',
+            'b/b2/b2b',
+            'c/c1',
+            'c/c2',
+        ]
+        t = Tree('test_tree', 'root', verbose=1)
+        t.build_tree(paths)
+        # t.render_tree()
+        for p in paths:
+            self.assertTrue(t.contain_path('root/' + p))
+
+        log_info()
+
+        # Build from dict
+        hierarchy = {
+            'a': {
+                'a1': {
+                    'a1a': {
+                        'a1a1': {},
+                        'a1a2': {}
+                    }
+                }
+            },
+            'b': {
+                'b1': {
+                    'b1a': {}
+                }
+            },
+            'c': {
+                'c1': {},
+                'c2': 'wrong node'
+            }
+        }
+        t = Tree('test_tree', 'root', verbose=1)
+        t.build_tree(hierarchy)
+        # t.render_tree()
+        for p in [
+            'root/a/a1/a1a/a1a1',
+            'root/a/a1/a1a/a1a2',
+            'root/b/b1/b1a',
+            'root/c/c1',
+        ]:
+            self.assertTrue(t.contain_path(p))
+
     def test_tree_traversal(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
         # pre-order, full and stop at "b1"
         b.traverse_preorder(_print_visited_node)
@@ -176,7 +229,7 @@ class TestCoreTree(unittest.TestCase):
 
     def test_node_property(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
         self.assertEqual(b.depth, 1)
         self.assertEqual(a1.depth, 2)
@@ -290,7 +343,7 @@ class TestCoreTree(unittest.TestCase):
 
     def test_node_operation_error(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
         # Test error scenarios when add children and set parent
         try:
@@ -335,7 +388,7 @@ class TestCoreTree(unittest.TestCase):
 
     def test_node_operation(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
 
         # Test lowest common ancestor
@@ -393,8 +446,9 @@ class TestCoreTree(unittest.TestCase):
 
     def test_tree_property(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
+        self.assertEqual(t.node_count, 17)
         self.assertEqual(root, root)
         new_root = Node('new_root')
         new_root.add_children(root)
@@ -402,7 +456,7 @@ class TestCoreTree(unittest.TestCase):
 
     def test_tree_operation(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
 
         # Test lowest common ancestor
@@ -528,7 +582,7 @@ class TestCoreTree(unittest.TestCase):
 
     def test_tree_render(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
         log_info('Render "{}"'.format(t.tree_name))
         root.render_subtree()

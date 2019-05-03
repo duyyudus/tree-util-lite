@@ -29,6 +29,7 @@ class Node(object):
         _children (list of Node): Not exists if Node is file
 
     Properties:
+        verbose (bool):
         label (str):
         path (Path):
         parent (Node):
@@ -47,6 +48,7 @@ class Node(object):
         data (dict):
 
     Methods:
+        set_verbose()
         relabel()
         set_parent()
         add_children()
@@ -81,6 +83,11 @@ class Node(object):
         self._verbose = verbose
 
         self.set_parent(parent)
+
+    @property
+    def verbose(self):
+        """bool: """
+        return self._verbose
 
     @property
     def label(self):
@@ -267,6 +274,9 @@ class Node(object):
             raise SetDescendantAsParent(msg)
         return 1
 
+    def set_verbose(self, verbose):
+        self._verbose = verbose
+
     def relabel(self, label):
         """Relabel node after checking for label clashing.
 
@@ -365,16 +375,18 @@ class Node(object):
                 self._children.remove(n)
 
     def add_subpath(self, *args):
-        """
+        """Add descendant to `self` using info parsed from provided paths.
+
+        If a part in path collide with an existing node label, skip and move to the next part.
+        New node verbosity is derived from `self._verbose`.
+
         Args:
-            args (list): mixed list of [str, Path, Node]
+            args (list): mixed list of [str, Path]
         """
 
         def to_part(a):
             if check_type(a, [str, PurePath], raise_exception=0):
                 return str(a)
-            elif check_type(a, [Node], raise_exception=0):
-                return a.label
             else:
                 return ''
 
@@ -390,7 +402,7 @@ class Node(object):
                     exists = 1
                     break
             if not exists:
-                cur_node = Node(label, parent=cur_node)
+                cur_node = Node(label, parent=cur_node, verbose=cur_node.verbose)
                 ret.append(cur_node)
         return ret
 
@@ -664,11 +676,14 @@ class Tree(object):
         root (Node):
 
     Methods:
+        build_tree()
         ls()
         search()
+        contain_path()
         insert()
         delete()
         lowest_common_ancestor()
+        render_tree()
 
     """
 
@@ -696,6 +711,37 @@ class Tree(object):
         """Node: auto update new root."""
         root = self._root if not self._root.parent else self._root.ancestor[-1]
         return root
+
+    @property
+    def node_count(self):
+        return len(self.ls())
+
+    def build_tree(self, source_data, verbose=0):
+        """Build subtrees from a list of node paths or dictionary hierarchy.
+
+        Newly created subtrees will be put under `self.root`
+
+        Args:
+            source_data (list, tuple, dict):
+                If a dict is provided, it must be in {key: {another_dict}} structure
+        """
+
+        self.root.set_verbose(verbose)
+
+        if check_type(source_data, [list, tuple], raise_exception=0):
+            for p in source_data:
+                self.root.add_subpath(p)
+        elif check_type(source_data, [dict], raise_exception=0):
+            queue = [source_data]
+            node_queue = [self.root]
+            while queue:
+                cursor = queue.pop()
+                node_cursor = node_queue.pop()
+                if check_type(cursor, [dict], raise_exception=0):
+                    for k in cursor.keys():
+                        node_k = Node(k, parent=node_cursor, verbose=verbose)
+                        queue.insert(0, cursor[k])
+                        node_queue.insert(0, node_k)
 
     def ls(self, node=None, pattern=None, return_label=0):
         """List nodes in tree using level-order traversal.
@@ -747,6 +793,21 @@ class Tree(object):
 
         return self.ls(pattern=pattern, return_label=return_label)
 
+    def contain_path(self, path):
+        """Check if `path` is in the tree.
+
+        Args:
+            path (str or Path): must be absolute path start from `self.root`
+        """
+
+        check_type(path, [str, Path])
+        path = Path(path)
+
+        if path.parts[0] != self.root.label:
+            return 0
+        else:
+            return self.root.contain_subpath(Path(*path.parts[1:]))
+
     def insert(self, node, target):
         """Insert `node` into `target`, making `node` the new parent of `target`
 
@@ -796,3 +857,6 @@ class Tree(object):
         check_type(node2, [Node])
 
         return node1.lowest_common_ancestor(node2)
+
+    def render_tree(self):
+        self.root.render_subtree()
