@@ -440,9 +440,21 @@ class TestCoreTree(unittest.TestCase):
         self.assertEqual([n.label for n in a.children], ['a2'])
 
         # Test cut node
-        a.cut()
+        a.cut_parent()
         self.assertEqual([n.label for n in root.children], ['c_inserted'])
         root.render_subtree()
+        log_info()
+
+        # Test insert below
+        c.add_children(c1, 'c2')
+        c_inserted_below = c.insert('c_inserted_below', below=1)
+        root.render_subtree()
+        self.assertEqual(
+            set([n.label for n in c_inserted_below.children]),
+            set(['c1', 'c2'])
+        )
+        self.assertEqual([n.label for n in c.children], ['c_inserted_below'])
+        self.assertEqual(c_inserted_below.parent, c)
 
     def test_tree_property(self):
         log_info()
@@ -609,7 +621,7 @@ class TestCoreTree(unittest.TestCase):
         log_info()
 
         log_info('Render "{}" after cutting "b2_relabeled" from the tree'.format(t.tree_name))
-        b2.cut()
+        b2.cut_parent()
         root.render_subtree()
         log_info()
 

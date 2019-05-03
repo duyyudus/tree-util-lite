@@ -46,7 +46,8 @@ By `tree_util_lite.core.tree.Node`
  * `isolate()`
  * `insert()`
  * `delete()`
- * `cut()`
+ * `cut_parent()`
+ * `cut_children()`
 
 ### Supported properties/operations on tree
 

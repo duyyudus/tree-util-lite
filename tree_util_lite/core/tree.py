@@ -62,7 +62,8 @@ class Node(object):
         isolate()
         insert()
         delete()
-        cut()
+        cut_parent()
+        cut_children()
 
     """
 
@@ -613,9 +614,17 @@ class Node(object):
         elif check_type(node, [str], raise_exception=0):
             node = Node(node)
 
-        cur_parent = self.parent
-        self.set_parent(node)
-        node.set_parent(cur_parent)
+        if below:
+            # For safety, make a new list from `self.children` instead of pointing to it
+            cur_children = list(self.children)
+            for c in cur_children:
+                c.set_parent(node)
+            self.cut_children()
+            node.set_parent(self)
+        else:
+            cur_parent = self.parent
+            self.set_parent(node)
+            node.set_parent(cur_parent)
 
         return node
 
@@ -629,12 +638,19 @@ class Node(object):
         self.isolate()
         cur_parent.add_children(*cur_children)
 
-    def cut(self):
+    def cut_parent(self):
         """Disconnect `self` from its parent."""
 
         if self in self.parent.children:
             self.parent.children.remove(self)
         self.set_parent(None)
+
+    def cut_children(self):
+        """Disconnect `self` from its children."""
+
+        for c in self.children:
+            c.set_parent(None)
+        self._children = []
 
     def lowest_common_ancestor(self, node):
         """Find lowest common ancestor of `self` and `node`.
