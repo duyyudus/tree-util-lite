@@ -69,17 +69,11 @@ class TestCoreTree(unittest.TestCase):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
 
-        root.render_subtree()
-        log_info()
-        a.render_subtree()
-        log_info()
-
-        # pre-order, stop at "b1"
+        # pre-order, full and stop at "b1"
         b.traverse_preorder(_print_visited_node)
         log_info()
 
         b_full = b.traverse_preorder(_return_visited_node)
-        log_info(b_full)
         self.assertEqual(
             b_full,
             ['b', 'b1', 'b1a', 'b2', 'b2a', 'b2b']
@@ -92,12 +86,11 @@ class TestCoreTree(unittest.TestCase):
         )
         log_info()
 
-        # post-order, stop at "b1"
+        # post-order, full and stop at "b1"
         root.traverse_postorder(_print_visited_node)
         log_info()
 
         root_full = root.traverse_postorder(_return_visited_node)
-        log_info(root_full)
         self.assertEqual(
             root_full,
             [
@@ -122,7 +115,6 @@ class TestCoreTree(unittest.TestCase):
         )
 
         root_stop = root.traverse_postorder(_return_visited_node_stop)
-        log_info(root_stop)
         self.assertEqual(
             root_stop,
             [
@@ -139,12 +131,11 @@ class TestCoreTree(unittest.TestCase):
         )
         log_info()
 
-        # level-order, stop at "b1"
+        # level-order, full and stop at "b1"
         root.traverse_levelorder(_print_visited_node)
         log_info()
 
         root_full = root.traverse_levelorder(_return_visited_node)
-        log_info(root_full)
         self.assertEqual(
             root_full,
             [
@@ -169,7 +160,6 @@ class TestCoreTree(unittest.TestCase):
         )
 
         root_stop = root.traverse_levelorder(_return_visited_node_stop)
-        log_info(root_stop)
         self.assertEqual(
             root_stop,
             [
@@ -232,12 +222,12 @@ class TestCoreTree(unittest.TestCase):
         self.assertEqual(b1a.is_root, 0)
         self.assertEqual(c1.is_root, 0)
 
-        self.assertEqual(b.node_path, Path('root/b'))
-        self.assertEqual(a1.node_path, Path('root/a/a1'))
-        self.assertEqual(a1a2.node_path, Path('root/a/a1/a1a/a1a2'))
-        self.assertEqual(a2a.node_path, Path('root/a/a2/a2a'))
-        self.assertEqual(b1a.node_path, Path('root/b/b1/b1a'))
-        self.assertEqual(c1.node_path, Path('root/c/c1'))
+        self.assertEqual(b.path, Path('root/b'))
+        self.assertEqual(a1.path, Path('root/a/a1'))
+        self.assertEqual(a1a2.path, Path('root/a/a1/a1a/a1a2'))
+        self.assertEqual(a2a.path, Path('root/a/a2/a2a'))
+        self.assertEqual(b1a.path, Path('root/b/b1/b1a'))
+        self.assertEqual(c1.path, Path('root/c/c1'))
 
         self.assertEqual(
             [n.label for n in b.ancestor],
@@ -348,6 +338,15 @@ class TestCoreTree(unittest.TestCase):
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
         b1, b2 = b.children
 
+        # Test lowest common ancestor
+        self.assertEqual(a1a2.lowest_common_ancestor(a2a), a)
+        self.assertEqual(a2a.lowest_common_ancestor(a1a2), a)
+        self.assertEqual(a2a.lowest_common_ancestor(b1a), root)
+        b2a, b2b = b2.children
+        c.set_parent(b2)
+        self.assertEqual(c1.lowest_common_ancestor(b2a), b2)
+        c.set_parent(root)
+
         # Test relabel
         b.relabel('b_relabeled')
         self.assertEqual(
@@ -404,6 +403,16 @@ class TestCoreTree(unittest.TestCase):
     def test_tree_operation(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+        b1, b2 = b.children
+
+        # Test lowest common ancestor
+        self.assertEqual(t.lowest_common_ancestor(a1a2, a2a), a)
+        self.assertEqual(t.lowest_common_ancestor(a2a, a1a2), a)
+        self.assertEqual(t.lowest_common_ancestor(a2a, b1a), root)
+        b2a, b2b = b2.children
+        c.set_parent(b2)
+        self.assertEqual(t.lowest_common_ancestor(c1, b2a), b2)
+        c.set_parent(root)
 
         # Test ls
         self.assertEqual(
@@ -430,7 +439,7 @@ class TestCoreTree(unittest.TestCase):
         )
         self.assertEqual(
             t.ls(a, return_label=1),
-            [                
+            [
                 'a1',
                 'a2',
                 'a1a',
@@ -447,7 +456,7 @@ class TestCoreTree(unittest.TestCase):
         )
         self.assertEqual(
             t.ls(b, pattern='b/b2/*', return_label=1),
-            [                
+            [
                 'b2a',
                 'b2b',
             ]
@@ -458,6 +467,102 @@ class TestCoreTree(unittest.TestCase):
                 'c1',
             ]
         )
+
+        # Test search
+        self.assertEqual(
+            t.search('', return_label=1),
+            [
+                'root',
+                'a',
+                'b',
+                'c',
+                'a1',
+                'a2',
+                'b1',
+                'b2',
+                'c1',
+                'c2',
+                'a1a',
+                'a2a',
+                'b1a',
+                'b2a',
+                'b2b',
+                'a1a1',
+                'a1a2',
+            ]
+        )
+        self.assertEqual(
+            t.search('a2', return_label=1),
+            [
+                'a2',
+            ]
+        )
+        self.assertEqual(
+            t.search('root/b/*/*', return_label=1),
+            [
+                'b1a',
+                'b2a',
+                'b2b',
+            ]
+        )
+        self.assertEqual(
+            t.search('*/a1/*/*', return_label=1),
+            [
+                'a1a1',
+                'a1a2',
+            ]
+        )
+
+        # Test insert
+        c_inserted = Node('c_inserted')
+        t.insert(c_inserted, c)
+        self.assertEqual([n.label for n in root.children], ['a', 'b', 'c_inserted'])
+        self.assertEqual([n.label for n in c_inserted.children], ['c'])
+        self.assertEqual(c.parent, c_inserted)
+
+        # Test delete
+        a1a = a1.children[0]
+        t.delete(a1a)
+        self.assertEqual([n.label for n in a1.children], ['a1a1', 'a1a2'])
+        self.assertEqual(a1a2.parent, a1)
+
+    def test_tree_render(self):
+        log_info()
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_construction(verbose=0)
+
+        log_info('Render "{}"'.format(t.tree_name))
+        root.render_subtree()
+        log_info()
+        log_info('Render subtree "a"')
+        a.render_subtree()
+        log_info()
+
+        log_info('Render "{}" after deleting "a1"'.format(t.tree_name))
+        a1.delete()
+        root.render_subtree()
+        log_info()
+
+        log_info('Render "{}" after reparenting "c" to "b1a"'.format(t.tree_name))
+        c.set_parent(b1a)
+        root.render_subtree()
+        log_info()
+
+        log_info('Render "{}" after relabeling and insert "b2" to "b1a"'.format(t.tree_name))
+        b1, b2 = b.children
+        b2.relabel('b2_relabeled')
+        b1a.insert(b2)
+        root.render_subtree()
+        log_info()
+
+        log_info('Render "{}" after cutting "b2_relabeled" from the tree'.format(t.tree_name))
+        b2.cut()
+        root.render_subtree()
+        log_info()
+
+        log_info('Render "{}" after adding "b2_relabeled" as child to "a"'.format(t.tree_name))
+        a.add_children(b2)
+        root.render_subtree()
+        log_info()
 
 
 def _print_visited_node(node):

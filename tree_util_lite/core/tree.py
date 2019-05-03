@@ -3,35 +3,19 @@ from tree_util_lite.common.util import *
 _STOP_TRAVERSAL = 0xffffffffffff
 
 
-class TreeError(Exception):
-    """Base error for tree-related operations."""
-
-    def __init__(self, message):
-        super(TreeError, self).__init__()
-        self._message = message
-        log_error('{}'.format(message))
-
-    def __str__(self):
-        return self._message
-
-
-class AddAncestorAsChild(TreeError):
+class AddAncestorAsChild(TreeUtilError):
     """Adding ancestor of a node to its children list is forbidden."""
 
 
-class SetDescendantAsParent(TreeError):
+class SetDescendantAsParent(TreeUtilError):
     """Setting descendant of a node as new parent is forbidden."""
 
 
-class SameNode(TreeError):
+class SameNode(TreeUtilError):
     """Name point to the same node."""
 
 
-class InvalidNode(TreeError):
-    """Invalid Node."""
-
-
-class LabelClashing(TreeError):
+class LabelClashing(TreeUtilError):
     """Name clashing when add child Node."""
 
 
@@ -41,17 +25,17 @@ class Node(object):
     Attributes:
         _label (str):
         _data (dict):
-        _parent (core.tree.Node):
-        _children (list of core.tree.Node): Not exists if Node is file
+        _parent (Node):
+        _children (list of Node): Not exists if Node is file
 
     Properties:
         label (str):
-        node_path (Path):
-        parent (core.tree.Node):
-        children (list of core.tree.Node):
-        ancestor (list of core.tree.Node):
-        descendant (list of core.tree.Node):
-        sibling (list of core.tree.Node):
+        path (Path):
+        parent (Node):
+        children (list of Node):
+        ancestor (list of Node):
+        descendant (list of Node):
+        sibling (list of Node):
         child_count (int):
         depth (int):
         level (int):
@@ -63,20 +47,20 @@ class Node(object):
         data (dict):
 
     Methods:
-        relabel
-        set_parent
-        add_children
-        remove_children
-        add_subpath
-        contain_subpath
-        traverse_preorder
-        traverse_postorder
-        traverse_levelorder
-        render_subtree
-        isolate
-        insert
-        delete
-        cut
+        relabel()
+        set_parent()
+        add_children()
+        remove_children()
+        add_subpath()
+        contain_subpath()
+        traverse_preorder()
+        traverse_postorder()
+        traverse_levelorder()
+        render_subtree()
+        isolate()
+        insert()
+        delete()
+        cut()
 
     """
 
@@ -84,7 +68,7 @@ class Node(object):
         """
         Args:
             label (str):
-            parent (core.tree.Node):
+            parent (Node):
             data (dict): custom data
 
         """
@@ -114,7 +98,7 @@ class Node(object):
         return len(self._children)
 
     @property
-    def node_path(self):
+    def path(self):
         """Path: """
         cur_parent = self._parent
         parts = [self._label]
@@ -125,7 +109,8 @@ class Node(object):
 
     @property
     def nice_path(self):
-        return self.node_path.as_posix()
+        """str: """
+        return self.path.as_posix()
 
     @property
     def depth(self):
@@ -157,32 +142,37 @@ class Node(object):
 
     @property
     def is_leaf(self):
+        """bool: """
         return 0 if self.children else 1
 
     @property
     def is_branch(self):
+        """bool: """
         return 1 if self.children else 0
 
     @property
     def is_root(self):
+        """bool: """
         return 1 if not self._parent else 0
 
     @property
     def is_isolated(self):
+        """bool: """
         return not self.parent and not self.children
 
     @property
     def parent(self):
-        """core.tree.Node: """
+        """Node: """
         return self._parent
 
     @property
     def children(self):
-        """list of core.tree.Node: """
+        """list of Node: """
         return self._children
 
     @property
     def ancestor(self):
+        """list of Node: """
         ret = []
         cur_parent = self.parent
         while cur_parent:
@@ -192,25 +182,30 @@ class Node(object):
 
     @property
     def descendant(self):
-        """list of core.tree.Node: """
+        """list of Node: """
         return self.traverse_levelorder()[1:]
 
     @property
     def sibling(self):
-        """list of core.tree.Node: """
+        """list of Node: """
         return [n for n in self._parent.children if n is not self]
 
     def _validate_node(self, node):
-        """Make sure `node` is valid for `self` to operate on."""
+        """Make sure `node` is valid for `self` to operate on.
+
+        Raises:
+            SameNode:
+            InvalidType:
+        Returns:
+            bool:
+        """
 
         if node is None:
             return 0
         if node is self:
             raise SameNode('"{}" is the same as "{}"'.format(node.nice_path, self.nice_path))
-        elif not isinstance(node, Node):
-            raise InvalidNode('"{}" must be an instance of `{}`'.format(str(node), type(Node)))
-        else:
-            return 1
+        check_type(node, [Node])
+        return 1
 
     def _validate_child(self, node):
         """Check if a node is qualified to be added as child of `self`.
@@ -220,11 +215,18 @@ class Node(object):
             `node` does not belong to `self.ancestor`
 
         Args:
-            node (core.tree.Node):
+            node (Node):
+
+        Raises:
+            LabelClashing:
+            InvalidType:
+            AddAncestorAsChild:
+
+        Returns:
+            bool:
         """
 
-        if not isinstance(node, Node):
-            raise InvalidNode('"{}" must be an instance of `{}`'.format(str(node), type(Node)))
+        check_type(node, [Node])
 
         for n in self.children:
             if n.label == node.label and n is not node:
@@ -243,11 +245,18 @@ class Node(object):
             `node` does not belong to `self.descendant`
 
         Args:
-            node (core.tree.Node):
+            node (Node):
+
+        Raises:
+            LabelClashing:
+            InvalidType:
+            SetDescendantAsParent:
+
+        Returns:
+            bool:
         """
 
-        if not isinstance(node, Node):
-            raise InvalidNode('"{}" must be an instance of `{}`'.format(str(node), type(Node)))
+        check_type(node, [Node])
 
         for n in node.children:
             if n.label == self.label and n is not self:
@@ -259,7 +268,11 @@ class Node(object):
         return 1
 
     def relabel(self, label):
-        """Relabel node after checking for label clashing."""
+        """Relabel node after checking for label clashing.
+
+        Args:
+            label (str):
+        """
 
         sibling_labels = [n.label for n in self.sibling]
         if label in sibling_labels:
@@ -269,7 +282,7 @@ class Node(object):
     def set_parent(self, parent):
         """
         Args:
-            parent (core.tree.Node):
+            parent (Node):
         """
 
         if parent is None:
@@ -303,12 +316,12 @@ class Node(object):
         """Add multiple nodes as children.
 
         Args:
-            args (list): mixed list of [str, core.tree.Node]
+            args (list): mixed list of [str, Node]
         """
 
         ret = []
-        children = [Node(a) for a in args if isinstance(a, str) and a]
-        children.extend([a for a in args if isinstance(a, Node)])
+        children = [Node(a) for a in args if check_type(a, [str], raise_exception=0) and a]
+        children.extend([a for a in args if check_type(a, [Node], raise_exception=0)])
         for child in children:
             if not self._validate_node(child):
                 continue
@@ -338,15 +351,15 @@ class Node(object):
         Subtrees of children are kept intact.
 
         Args:
-            args (list): mixed list of [str, core.tree.Node]
+            args (list): mixed list of [str, Node]
         """
 
-        children_labels = [a for a in args if isinstance(a, str) and a]
+        children_labels = [a for a in args if check_type(a, [str], raise_exception=0) and a]
         for n in self._children:
             if n.label in children_labels:
                 self._children.remove(n)
 
-        children = [a for a in args if isinstance(a, Node) and a]
+        children = [a for a in args if check_type(a, [Node], raise_exception=0) and a]
         for n in self._children:
             if n in children:
                 self._children.remove(n)
@@ -354,13 +367,13 @@ class Node(object):
     def add_subpath(self, *args):
         """
         Args:
-            args (list): mixed list of [str, Path, core.tree.Node]
+            args (list): mixed list of [str, Path, Node]
         """
 
         def to_part(a):
-            if isinstance(a, (str, PurePath)):
+            if check_type(a, [str, PurePath], raise_exception=0):
                 return str(a)
-            elif isinstance(a, Node):
+            elif check_type(a, [Node], raise_exception=0):
                 return a.label
             else:
                 return ''
@@ -539,6 +552,8 @@ class Node(object):
         return discovered
 
     def render_subtree(self):
+        """Print tree hierarchy in console."""
+
         cur_root_depth = self.depth
 
         def print_indent(node):
@@ -557,8 +572,9 @@ class Node(object):
             Make `self.children` empty
         """
 
-        if self in self.parent.children:
-            self.parent.children.remove(self)
+        if self.parent:
+            if self in self.parent.children:
+                self.parent.children.remove(self)
         self.set_parent(None)
         for n in self._children:
             n.set_parent(None)
@@ -570,21 +586,20 @@ class Node(object):
         `node` will be isolated from its tree ( if any ) before inserted.
 
         Args:
-            node (str or core.tree.Node): node to be inserted
+            node (str or Node): node to be inserted
                 A new node will be created if a label is provided
             below (bool): insert below `self` instead
                 All children of `self` will be re-parented to new node
-
+        Raises:
+            InvalidType:
         Returns:
-            core.tree.Node:
+            Node:
         """
 
-        if isinstance(node, Node):
+        if check_type(node, [Node], raise_exception=0):
             node.isolate()
-        elif isinstance(node, str):
+        elif check_type(node, [str], raise_exception=0):
             node = Node(node)
-        else:
-            raise InvalidNode('"{}" must be `str` or `{}`'.format(str(node), type(Node)))
 
         cur_parent = self.parent
         self.set_parent(node)
@@ -609,24 +624,51 @@ class Node(object):
             self.parent.children.remove(self)
         self.set_parent(None)
 
+    def lowest_common_ancestor(self, node):
+        """Find lowest common ancestor of `self` and `node`.
+
+        Args:
+            node (Node):
+        Returns:
+            Node:
+        """
+
+        check_type(node, [Node])
+
+        self_ancestor = self.ancestor
+        self_ancestor_size = len(self_ancestor)
+        node_ancestor = node.ancestor
+        node_ancestor_size = len(node_ancestor)
+
+        if self_ancestor_size >= node_ancestor_size:
+            max_len = self_ancestor_size
+            node_ancestor = [None] * (self_ancestor_size - node_ancestor_size) + node_ancestor
+        else:
+            max_len = node_ancestor_size
+            self_ancestor = [None] * (node_ancestor_size - self_ancestor_size) + self_ancestor
+
+        for i in range(max_len):
+            if self_ancestor[i] is node_ancestor[i]:
+                return self_ancestor[i]
+
 
 class Tree(object):
     """A generic ordered-tree of Node objects.
 
     Attributes:
         _tree_name (str):
-        _root (core.tree.Node):
+        _root (Node):
 
     Properties:
         tree_name (str):
-        root (core.tree.Node):
+        root (Node):
 
     Methods:
-        ls
-        search
-        insert
-        delete
-        lowest_common_ancestor
+        ls()
+        search()
+        insert()
+        delete()
+        lowest_common_ancestor()
 
     """
 
@@ -651,7 +693,7 @@ class Tree(object):
 
     @property
     def root(self):
-        """core.tree.Node: auto update new root."""
+        """Node: auto update new root."""
         root = self._root if not self._root.parent else self._root.ancestor[-1]
         return root
 
@@ -661,13 +703,14 @@ class Tree(object):
         List all nodes by default.
 
         Args:
-            node (core.tree.Node): list descendant of `node`
-                None for list all nodes in tree
+            node (Node): list descendant of `node`
+                None for listing all nodes in tree
             pattern (str): glob pattern
                 If relative, the path can be either relative or absolute,
                 and matching is done from the right
                 Example:
                     'a/b.py' match '*.py'
+                    '/a/b/c.py' match '/a/*/*.py'
                     '/a/b/c.py' does not match 'a/*.py'
                 If absolute, the path must be absolute, and the whole path must match
                 Example:
@@ -675,56 +718,81 @@ class Tree(object):
                     'a/b.py' does not match '/*.py'
             return_label (bool): return list of node labels
 
+        Raises:
+            InvalidType:
+
         Returns:
-            list of core.tree.Node:
+            list of Node:
         """
 
-        if not isinstance(node, Node) and node is not None:
-            msg = '"{}" must be an instance of `{}` or `None`'.format(str(node), type(Node))
-            raise InvalidNode(msg)
+        check_type(node, [Node, type(None)])
+        check_type(pattern, [str, type(None)])
 
         listed_nodes = node.descendant if node else [self.root] + self.root.descendant
         if pattern:
-            listed_nodes = [n for n in listed_nodes if n.node_path.match(pattern)]
+            listed_nodes = [n for n in listed_nodes if n.path.match(pattern)]
 
         return [n.label if return_label else n for n in listed_nodes]
 
-    def search(self, node_path):
-        """Search for a node using its label or node path in tree.
+    def search(self, pattern, return_label=0):
+        """Search for nodes in tree, start from `self.root`.
 
         Args:
-            node_path (str or Path): path to node from `self._root`
-                If a label is provided, search for all nodes with that
+            pattern (str): glob pattern for searching all descendant of `self.root`
+                Same rule as `pattern` argument in `self.ls()`
 
         Returns:
-            list of core.tree.Node:
+            list of Node:
         """
 
-        return []
+        return self.ls(pattern=pattern, return_label=return_label)
 
     def insert(self, node, target):
-        """
+        """Insert `node` into `target`, making `node` the new parent of `target`
+
+        Wrap `Node.insert()`
+
         Args:
-            node (str or core.tree.Node):
-            targe (str or Path or core.tree.Node):
+            node (Node):
+            targe (Node):
+
+        Raises:
+            InvalidType:
+
         Returns:
-            core.tree.Node:
+            Node:
         """
 
-        return None
+        check_type(node, [Node])
+        check_type(target, [Node])
+
+        return target.insert(node)
 
     def delete(self, node):
-        """
+        """Wrap `Node.delete()`
+
         Args:
-            node (str or Path or core.tree.Node):
+            node (Node):
+
+        Raises:
+            InvalidType:
         """
 
-        pass
+        check_type(node, [Node])
+
+        node.delete()
 
     def lowest_common_ancestor(self, node1, node2):
-        """
+        """Wrap `Node.lowest_common_ancestor()`
+
+        Raises:
+            InvalidType:
+
         Returns:
-            core.tree.Node:
+            Node:
         """
 
-        return None
+        check_type(node1, [Node])
+        check_type(node2, [Node])
+
+        return node1.lowest_common_ancestor(node2)

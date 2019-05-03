@@ -21,6 +21,22 @@ LOG_ERROR_PREFIX = CFG_DICT['LOG_ERROR_PREFIX']
 _log_on = 1
 
 
+class TreeUtilError(Exception):
+    """Base error for tree-related operations."""
+
+    def __init__(self, message):
+        super(TreeUtilError, self).__init__()
+        self._message = message
+        log_error('{}'.format(message))
+
+    def __str__(self):
+        return self._message
+
+
+class InvalidType(TreeUtilError):
+    """Invalid type."""
+
+
 def _time_measure(func):
     """Measure running time of a function."""
 
@@ -115,3 +131,22 @@ def save_json(data, json_path, verbose=0):
         f.write(json.dumps(data))
         if verbose:
             log_info('Saved JSON: {}'.format(json_path))
+
+
+def check_type(obj, types, raise_exception=1):
+    """Assert type of `obj`
+
+    Args:
+        obj:
+        types (list): list of types/classes
+    Raises:
+        InvalidType:
+    """
+
+    if isinstance(obj, tuple(types)):
+        return 1
+    elif raise_exception:
+        msg = '"{}" must be an instance of ({})'.format(str(obj), ', '.join([str(t) for t in types]))
+        raise InvalidType(msg)
+    else:
+        return 0
