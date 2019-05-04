@@ -16,7 +16,7 @@ class SameNode(TreeUtilError):
 
 
 class LabelClashing(TreeUtilError):
-    """Name clashing when add child Node."""
+    """Label clashing when add child Node."""
 
 
 class Node(object):
@@ -32,13 +32,10 @@ class Node(object):
         verbose (bool):
         label (str):
         id (str):
-        path (Path):
-        parent (Node):
-        children (list of Node):
-        ancestor (list of Node):
-        descendant (list of Node):
-        sibling (list of Node):
+        data (dict):
         child_count (int):
+        path (Path):
+        nice_path (str):
         depth (int):
         level (int):
         height (int):
@@ -46,11 +43,19 @@ class Node(object):
         is_branch (bool):
         is_root (bool):
         is_isolated (bool):
-        data (dict):
+        is_keyroot (bool):
+        parent (Node):
+        children (list of Node):
+        ancestor (list of Node):
+        descendant (list of Node):
+        sibling (list of Node):
+        leftmost (Node):
+        keyroots (list of Node):
 
     Methods:
         set_verbose()
         relabel()
+        set_data()
         set_parent()
         add_children()
         remove_children()
@@ -176,6 +181,13 @@ class Node(object):
         return not self.parent and not self.children
 
     @property
+    def is_keyroot(self):
+        """bool: check if `self` has any left sibling."""
+        if not self.parent:
+            return 0
+        return 1 if self.parent.children.index(self) > 0 else 0
+
+    @property
     def parent(self):
         """Node: """
         return self._parent
@@ -204,6 +216,20 @@ class Node(object):
     def sibling(self):
         """list of Node: """
         return [n for n in self._parent.children if n is not self]
+
+    @property
+    def leftmost(self):
+        """Node: leftmost node of descendant in postorder traversal."""
+        return self.traverse_postorder()[0]
+
+    @property
+    def keyroots(self):
+        """list of Node: postorder list of key roots of subtree with root is `self`."""
+        kr = [n for n in self.traverse_postorder() if n.is_keyroot]
+        if kr:
+            if kr[-1] is not self:
+                kr.append(self)
+        return kr
 
     def _validate_node(self, node):
         """Make sure `node` is valid for `self` to operate on.
@@ -787,11 +813,11 @@ class Tree(object):
         elif check_type(source_data, [dict], raise_exception=0):
             children_queue = [source_data]
             parent_node_queue = [self.root]
-            while children_queue:                
+            while children_queue:
                 children_cursor = children_queue.pop()  # Point to a dict
                 parent_node_cursor = parent_node_queue.pop()  # Point to a Node
 
-                # Not a dict mean no children represented in `children_cursor`, 
+                # Not a dict mean no children represented in `children_cursor`,
                 # therefore `parent_node_cursor` now is a leaf,
                 # naturally we just use `children_cursor` as leaf node data for `parent_node_cursor`
                 if not check_type(children_cursor, [dict], raise_exception=0):

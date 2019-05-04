@@ -23,7 +23,7 @@ Node = tree.Node
 # |---|---c2
 
 # Visualized in levelorder
-# 
+#
 #                    root
 #         ---------------------------
 #         a            b            c
@@ -33,7 +33,7 @@ Node = tree.Node
 #    a1a      a2a  b1a  b2a  b2b
 # ----------
 # a1a1  a1a2
-# 
+#
 # parent_offset = len(children)/2 - len(parent)/2
 
 
@@ -469,6 +469,47 @@ class TestCoreTree(unittest.TestCase):
         )
         self.assertEqual([n.label for n in c.children], ['c_inserted_below'])
         self.assertEqual(c_inserted_below.parent, c)
+
+    def test_node_operation_advance(self):
+        log_info()
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
+        b1, b2 = b.children
+
+        self.assertEqual(b.is_keyroot, 1)
+        self.assertEqual(c.is_keyroot, 1)
+        self.assertEqual(a1a2.is_keyroot, 1)
+        self.assertEqual(b.leftmost, b1a)
+        self.assertEqual(root.leftmost.label, 'a1a1')
+        self.assertEqual(c1.leftmost, c1)
+        self.assertEqual(b2.leftmost.label, 'b2a')
+        self.assertEqual(
+            [n.label for n in root.keyroots],
+            [
+                'a1a2',
+                'a2',
+                'b2b',
+                'b2',
+                'b',
+                'c2',
+                'c',
+                'root',
+            ]
+        )
+        self.assertEqual(
+            [n.label for n in b.keyroots],
+            [
+                'b2b',
+                'b2',
+                'b',
+            ]
+        )
+        self.assertEqual(
+            [n.label for n in c.keyroots],
+            [
+                'c2',
+                'c',
+            ]
+        )
 
     def test_tree_property(self):
         log_info()
