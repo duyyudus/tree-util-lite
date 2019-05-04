@@ -31,6 +31,7 @@ class Node(object):
     Properties:
         verbose (bool):
         label (str):
+        id (str):
         path (Path):
         parent (Node):
         children (list of Node):
@@ -82,6 +83,7 @@ class Node(object):
         self._parent = parent
         self._children = []
         self._verbose = verbose
+        self._id = generate_id()
 
         self.set_parent(parent)
 
@@ -94,6 +96,11 @@ class Node(object):
     def label(self):
         """str: """
         return self._label
+
+    @property
+    def id(self):
+        """str: unique ID of a Node instance."""
+        return self._id
 
     @property
     def data(self):
@@ -570,7 +577,7 @@ class Node(object):
         cur_root_depth = self.depth
 
         def print_indent(node):
-            print('|---' * (node.depth - cur_root_depth) + node.label)
+            print('|---' * (node.depth - cur_root_depth) + '{} ({})'.format(node.label, node.id))
             return 0, 0
 
         self.traverse_preorder(print_indent)
@@ -759,15 +766,15 @@ class Tree(object):
                         queue.insert(0, cursor[k])
                         node_queue.insert(0, node_k)
 
-    def ls(self, node=None, pattern=None, return_label=0):
+    def ls(self, node=None, pattern=None, ids=None, return_label=0):
         """List nodes in tree using level-order traversal.
 
         List all nodes by default.
 
         Args:
-            node (Node): list descendant of `node`
+            node (Node, optional): list descendant of `node`
                 None for listing all nodes in tree
-            pattern (str): glob pattern
+            pattern (str, optional): glob pattern
                 If relative, the path can be either relative or absolute,
                 and matching is done from the right
                 Example:
@@ -778,7 +785,9 @@ class Tree(object):
                 Example:
                     '/a.py' match '/*.py'
                     'a/b.py' does not match '/*.py'
-            return_label (bool): return list of node labels
+            ids (list, optional): a list of node IDs
+                Filtering nodes by ID
+            return_label (bool, optional): return list of node labels
 
         Raises:
             InvalidType:
@@ -793,21 +802,26 @@ class Tree(object):
         listed_nodes = node.descendant if node else [self.root] + self.root.descendant
         if pattern:
             listed_nodes = [n for n in listed_nodes if n.path.match(pattern)]
+        if ids:
+            listed_nodes = [n for n in listed_nodes if n.id in ids]
 
         return [n.label if return_label else n for n in listed_nodes]
 
-    def search(self, pattern, return_label=0):
+    def search(self, pattern, ids=None, return_label=0):
         """Search for nodes in tree, start from `self.root`.
 
         Args:
             pattern (str): glob pattern for searching all descendant of `self.root`
                 Same rule as `pattern` argument in `self.ls()`
+            ids (list, optional): a list of node IDs
+                Filtering nodes by ID
+            return_label (bool, optional): return list of node labels
 
         Returns:
             list of Node:
         """
 
-        return self.ls(pattern=pattern, return_label=return_label)
+        return self.ls(pattern=pattern, ids=ids, return_label=return_label)
 
     def contain_path(self, path):
         """Check if `path` is in the tree.

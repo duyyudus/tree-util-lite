@@ -4,6 +4,7 @@ import functools
 import time
 import json
 import re
+import random
 import shutil
 
 if sys.version_info[0] == 3:
@@ -150,3 +151,8 @@ def check_type(obj, types, raise_exception=1):
         raise InvalidType(msg)
     else:
         return 0
+
+
+def generate_id(size=8):
+    alphabet = [c for c in 'abcdefghijklmnopqrstuvwxyz0123456789']
+    return ''.join(random.sample(alphabet, size))

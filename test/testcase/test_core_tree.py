@@ -533,6 +533,13 @@ class TestCoreTree(unittest.TestCase):
                 'c1',
             ]
         )
+        self.assertEqual(
+            t.ls(ids=[a.id, b1a.id], return_label=1),
+            [
+                'a',
+                'b1a',
+            ]
+        )
 
         # Test search
         self.assertEqual(
@@ -576,6 +583,13 @@ class TestCoreTree(unittest.TestCase):
             [
                 'a1a1',
                 'a1a2',
+            ]
+        )
+        self.assertEqual(
+            t.search('', ids=[a.id, b1a.id], return_label=1),
+            [
+                'a',
+                'b1a',
             ]
         )
 

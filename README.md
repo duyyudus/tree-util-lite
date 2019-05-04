@@ -14,6 +14,7 @@ By `tree_util_lite.core.tree.Node`
 
  * `verbose` (bool):
  * `label` (str):
+ * `id` (str):
  * `path` (Path):
  * `parent` (Node):
  * `children` (list of Node):

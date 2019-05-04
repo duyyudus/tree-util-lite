@@ -6,9 +6,15 @@ class TestUtil(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestUtil, self).__init__(*args, **kwargs)
 
+    def test_generate_id(self):
+        log_info()
+        for _ in range(10):
+            log_info(generate_id())
+
 
 @log_test(__file__)
 def run():
+    switch_log(1)
     testcase_classes = [
         TestUtil
     ]
