@@ -2,7 +2,7 @@ from _setup_test import *
 Tree = tree.Tree
 Node = tree.Node
 
-# Test tree
+# Test tree, preorder
 #
 # root
 # |---a
@@ -21,6 +21,20 @@ Node = tree.Node
 # |---c
 # |---|---c1
 # |---|---c2
+
+# Visualized in levelorder
+# 
+#                    root
+#         ---------------------------
+#         a            b            c
+#    -----------   ----------     ------
+#    a1       a2   b1      b2     c1  c2
+#    ---      ---  ---  --------
+#    a1a      a2a  b1a  b2a  b2b
+# ----------
+# a1a1  a1a2
+# 
+# parent_offset = len(children)/2 - len(parent)/2
 
 
 class TestCoreTree(unittest.TestCase):
@@ -104,7 +118,7 @@ class TestCoreTree(unittest.TestCase):
             },
             'c': {
                 'c1': {},
-                'c2': 'wrong node'
+                'c2': 'custom data'
             }
         }
         t = Tree('test_tree', 'root', verbose=1)

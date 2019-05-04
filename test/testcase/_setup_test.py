@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib2 import Path
 
-# Append parent directory of `binary_vcs_lite` package
+# Append parent directory of `tree_util_lite` package
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 

@@ -74,7 +74,7 @@ By `tree_util_lite.core.tree.Tree`
  * `lowest_common_ancestor()`
  * `render_tree()`
 
-## Example usages:
+## Popular usages:
 
  * Representing hierarchical data
  * Detect changes in file/folder structures
@@ -82,4 +82,105 @@ By `tree_util_lite.core.tree.Tree`
  * Differences between 3D scene hierarchies
  * So on...
 
-Coming soon...
+# Usage examples
+
+## Build tree
+
+**From a list of node paths**
+
+```python
+from tree_util_lite.core import tree
+
+paths = [
+    'a/a1/a1a/a1a1',
+    'a/a1/a1a/a1a2',
+    'a/a2/a2a',
+    'b/b1/b1a',
+    'b/b2/b2a',
+    'b/b2/b2b',
+    'c/c1',
+    'c/c2',
+]
+t = tree.Tree('test_tree', root_name='root', verbose=1)
+t.build_tree(paths)
+
+```
+
+Check the result
+```python
+t.render_tree(without_id=1)
+```
+Result in console
+
+```
+root 
+|---a 
+|---|---a1 
+|---|---|---a1a 
+|---|---|---|---a1a1 
+|---|---|---|---a1a2 
+|---|---a2 
+|---|---|---a2a 
+|---b 
+|---|---b1 
+|---|---|---b1a 
+|---|---b2 
+|---|---|---b2a 
+|---|---|---b2b 
+|---c 
+|---|---c1 
+|---|---c2 
+
+```
+
+**From a dictionary**
+
+```python
+hierarchy = {
+    'a': {
+        'a1': {
+            'a1a': {
+                'a1a1': {},
+                'a1a2': {}
+            }
+        }
+    },
+    'b': {
+        'b1': {
+            'b1a': {}
+        }
+    },
+    'c': {
+        'c1': {
+            'c1a': {}
+        },
+        'c2': 'custom data'
+    }
+}
+t = tree.Tree('test_tree', 'root', verbose=1)
+t.build_tree(hierarchy)
+
+```
+
+Check the result with node ID
+```python
+t.render_tree(without_id=0)
+```
+Result in console
+
+```
+root (o92c0lyx)
+|---a (8ocgfarw)
+|---|---a1 (yjp5c0vg)
+|---|---|---a1a (gmcrz7n9)
+|---|---|---|---a1a1 (nzcdogmp)
+|---|---|---|---a1a2 (wfcj207v)
+|---b (79ue5kqs)
+|---|---b1 (pt510rfe)
+|---|---|---b1a (25k6rhdx)
+|---c (trpf2nza)
+|---|---c1 (txmz3q4b)
+|---|---|---c1a (aidwjfo7)
+|---|---c2 (9fyb0xwa)
+
+```

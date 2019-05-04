@@ -24,7 +24,7 @@ class Node(object):
 
     Attributes:
         _label (str):
-        _data (dict):
+        _data (any type):
         _parent (Node):
         _children (list of Node): Not exists if Node is file
 
@@ -104,7 +104,7 @@ class Node(object):
 
     @property
     def data(self):
-        """dict: """
+        """any type: """
         return self._data
 
     @property
@@ -296,6 +296,13 @@ class Node(object):
         if label in sibling_labels:
             raise LabelClashing('There is already a sibling with label "{}"'.format(label))
         self._label = label
+
+    def set_data(self, data):
+        """
+        Args:
+            data: object/instance of any type
+        """
+        self._data = data
 
     def set_parent(self, parent):
         """
@@ -571,13 +578,16 @@ class Node(object):
 
         return discovered
 
-    def render_subtree(self):
+    def render_subtree(self, without_id=1):
         """Print tree hierarchy in console."""
 
         cur_root_depth = self.depth
 
         def print_indent(node):
-            print('|---' * (node.depth - cur_root_depth) + '{} ({})'.format(node.label, node.id))
+            print('|---' * (node.depth - cur_root_depth) + '{} {}'.format(
+                node.label,
+                '' if without_id else '({})'.format(node.id)
+            ))
             return 0, 0
 
         self.traverse_preorder(print_indent)
@@ -775,16 +785,23 @@ class Tree(object):
             for p in source_data:
                 self.root.add_subpath(p)
         elif check_type(source_data, [dict], raise_exception=0):
-            queue = [source_data]
-            node_queue = [self.root]
-            while queue:
-                cursor = queue.pop()
-                node_cursor = node_queue.pop()
-                if check_type(cursor, [dict], raise_exception=0):
-                    for k in cursor.keys():
-                        node_k = Node(k, parent=node_cursor, verbose=verbose)
-                        queue.insert(0, cursor[k])
-                        node_queue.insert(0, node_k)
+            children_queue = [source_data]
+            parent_node_queue = [self.root]
+            while children_queue:                
+                children_cursor = children_queue.pop()  # Point to a dict
+                parent_node_cursor = parent_node_queue.pop()  # Point to a Node
+
+                # Not a dict mean no children represented in `children_cursor`, 
+                # therefore `parent_node_cursor` now is a leaf,
+                # naturally we just use `children_cursor` as leaf node data for `parent_node_cursor`
+                if not check_type(children_cursor, [dict], raise_exception=0):
+                    parent_node_cursor.set_data(children_cursor)
+                    continue
+
+                for k in children_cursor.keys():
+                    node_k = Node(k, parent=parent_node_cursor, verbose=verbose)
+                    children_queue.insert(0, children_cursor[k])
+                    parent_node_queue.insert(0, node_k)
 
     def ls(self, node=None, pattern=None, ids=None, return_label=0):
         """List nodes in tree using level-order traversal.
@@ -908,5 +925,5 @@ class Tree(object):
 
         return node1.lowest_common_ancestor(node2)
 
-    def render_tree(self):
-        self.root.render_subtree()
+    def render_tree(self, without_id=1):
+        self.root.render_subtree(without_id)
