@@ -50,5 +50,6 @@ def build_tree_example():
     t.build_tree(hierarchy)
     t.render_tree(without_id=0)
 
+
 if __name__ == '__main__':
     build_tree_example()

@@ -15,13 +15,10 @@ By `tree_util_lite.core.tree.Node`
  * `verbose` (bool):
  * `label` (str):
  * `id` (str):
- * `path` (Path):
- * `parent` (Node):
- * `children` (list of Node):
- * `ancestor` (list of Node):
- * `descendant` (list of Node):
- * `sibling` (list of Node):
+ * `data` (dict):
  * `child_count` (int):
+ * `path` (Path):
+ * `nice_path` (str):
  * `depth` (int):
  * `level` (int):
  * `height` (int):
@@ -29,12 +26,20 @@ By `tree_util_lite.core.tree.Node`
  * `is_branch` (bool):
  * `is_root` (bool):
  * `is_isolated` (bool):
- * `data` (dict):
+ * `is_keyroot` (bool):
+ * `parent` (Node):
+ * `children` (list of Node):
+ * `ancestor` (list of Node):
+ * `descendant` (list of Node):
+ * `sibling` (list of Node):
+ * `leftmost` (Node):
+ * `keyroots` (list of Node):
 
 **Operations**
 
  * `set_verbose()`
  * `relabel()`
+ * `set_data()`
  * `set_parent()`
  * `add_children()`
  * `remove_children()`
