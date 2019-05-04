@@ -697,6 +697,10 @@ class Tree(object):
     Properties:
         tree_name (str):
         root (Node):
+        node_count (int):
+        nodes_by_preorder (list of Node):
+        nodes_by_postorder (list of Node):
+        nodes_by_levelorder (list of Node):
 
     Methods:
         build_tree()
@@ -737,7 +741,23 @@ class Tree(object):
 
     @property
     def node_count(self):
+        """int: """
         return len(self.ls())
+
+    @property
+    def nodes_by_preorder(self):
+        """list: list of all nodes in preorder traversal."""
+        return self.root.traverse_preorder()
+
+    @property
+    def nodes_by_postorder(self):
+        """list: list of all nodes in postorder traversal."""
+        return self.root.traverse_postorder()
+
+    @property
+    def nodes_by_levelorder(self):
+        """list: list of all nodes in levelorder traversal."""
+        return self.root.traverse_levelorder()
 
     def build_tree(self, source_data, verbose=0):
         """Build subtrees from a list of node paths or dictionary hierarchy.
@@ -808,7 +828,7 @@ class Tree(object):
         return [n.label if return_label else n for n in listed_nodes]
 
     def search(self, pattern, ids=None, return_label=0):
-        """Search for nodes in tree, start from `self.root`.
+        """Search for nodes in tree using `self.ls()`, start from `self.root`.
 
         Args:
             pattern (str): glob pattern for searching all descendant of `self.root`

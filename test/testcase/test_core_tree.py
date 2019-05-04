@@ -122,7 +122,7 @@ class TestCoreTree(unittest.TestCase):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
-        # pre-order, full and stop at "b1"
+        # pre-order from "b", stop at "b1"
         b.traverse_preorder(_print_visited_node)
         log_info()
 
@@ -139,7 +139,7 @@ class TestCoreTree(unittest.TestCase):
         )
         log_info()
 
-        # post-order, full and stop at "b1"
+        # post-order from "root", stop at "b1"
         root.traverse_postorder(_print_visited_node)
         log_info()
 
@@ -184,7 +184,7 @@ class TestCoreTree(unittest.TestCase):
         )
         log_info()
 
-        # level-order, full and stop at "b1"
+        # level-order from "root", stop at "b1"
         root.traverse_levelorder(_print_visited_node)
         log_info()
 
@@ -465,6 +465,77 @@ class TestCoreTree(unittest.TestCase):
         new_root = Node('new_root')
         new_root.add_children(root)
         self.assertEqual(t.root, new_root)
+
+        # Enumerate all nodes by traversal types
+        self.assertEqual(
+            [n.label for n in t.nodes_by_preorder],
+            [
+                'new_root',
+                'root',
+                'a',
+                'a1',
+                'a1a',
+                'a1a1',
+                'a1a2',
+                'a2',
+                'a2a',
+                'b',
+                'b1',
+                'b1a',
+                'b2',
+                'b2a',
+                'b2b',
+                'c',
+                'c1',
+                'c2',
+            ]
+        )
+        self.assertEqual(
+            [n.label for n in t.nodes_by_postorder],
+            [
+                'a1a1',
+                'a1a2',
+                'a1a',
+                'a1',
+                'a2a',
+                'a2',
+                'a',
+                'b1a',
+                'b1',
+                'b2a',
+                'b2b',
+                'b2',
+                'b',
+                'c1',
+                'c2',
+                'c',
+                'root',
+                'new_root',
+            ]
+        )
+        self.assertEqual(
+            [n.label for n in t.nodes_by_levelorder],
+            [
+                'new_root',
+                'root',
+                'a',
+                'b',
+                'c',
+                'a1',
+                'a2',
+                'b1',
+                'b2',
+                'c1',
+                'c2',
+                'a1a',
+                'a2a',
+                'b1a',
+                'b2a',
+                'b2b',
+                'a1a1',
+                'a1a2'
+            ]
+        )
 
     def test_tree_operation(self):
         log_info()

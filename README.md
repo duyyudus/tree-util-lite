@@ -58,6 +58,10 @@ By `tree_util_lite.core.tree.Tree`
 
  * `tree_name` (str):
  * `root` (Node):
+ * `node_count` (int):
+ * `nodes_by_preorder` (list of Node):
+ * `nodes_by_postorder` (list of Node):
+ * `nodes_by_levelorder` (list of Node):
 
 **Operations**
 
