@@ -8,7 +8,9 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from tree_util_lite.common.util import *
 
-from tree_util_lite.core import tree
+from tree_util_lite.core import tree, diff_engine
+from tree_util_lite.tree_distance import zhang_shasha
+
 
 TEST_ROOT = Path(__file__).resolve().parent.parent
 
