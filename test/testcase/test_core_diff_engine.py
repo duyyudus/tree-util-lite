@@ -1,7 +1,3 @@
-from _setup_test import *
-Tree = tree.Tree
-Node = tree.Node
-
 # Test tree, preorder
 #
 # root
@@ -35,6 +31,10 @@ Node = tree.Node
 # a1a1  a1a2
 #
 # parent_offset = len(children)/2 - len(parent)/2
+
+from _setup_test import *
+Tree = tree.Tree
+Node = tree.Node
 
 
 class TestCoreDiffEngine(unittest.TestCase):

@@ -9,6 +9,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from tree_util_lite.common.util import *
 
 from tree_util_lite.core import tree, diff_engine
+from tree_util_lite import tree_distance
 from tree_util_lite.tree_distance import zhang_shasha
 
 
