@@ -49,8 +49,11 @@ class Node(object):
         ancestor (list of Node):
         descendant (list of Node):
         sibling (list of Node):
-        leftmost (Node):
+        nodes_by_preorder (list of Node):
+        nodes_by_postorder (list of Node):
+        nodes_by_levelorder (list of Node):
         keyroots (list of Node):
+        leftmost (Node):
 
     Methods:
         set_verbose()
@@ -199,7 +202,7 @@ class Node(object):
 
     @property
     def ancestor(self):
-        """list of Node: """
+        """list of Node: go from lower parent to upper parent."""
         ret = []
         cur_parent = self.parent
         while cur_parent:
@@ -209,7 +212,7 @@ class Node(object):
 
     @property
     def descendant(self):
-        """list of Node: """
+        """list of Node: levelorder descendant."""
         return self.traverse_levelorder()[1:]
 
     @property
@@ -218,18 +221,65 @@ class Node(object):
         return [n for n in self._parent.children if n is not self]
 
     @property
-    def leftmost(self):
-        """Node: leftmost node of descendant in postorder traversal."""
-        return self.traverse_postorder()[0]
+    def nodes_by_preorder(self):
+        """list: list of all nodes in preorder traversal of subtree rooted at `self`."""
+        return self.traverse_preorder()
+
+    @property
+    def nodes_by_postorder(self):
+        """list: list of all nodes in postorder traversal of subtree rooted at `self`."""
+        return self.traverse_postorder()
+
+    @property
+    def nodes_by_levelorder(self):
+        """list: list of all nodes in levelorder traversal of subtree rooted at `self`."""
+        return self.traverse_levelorder()
 
     @property
     def keyroots(self):
-        """list of Node: postorder list of key roots of subtree with root is `self`."""
-        kr = [n for n in self.traverse_postorder() if n.is_keyroot]
-        if kr:
-            if kr[-1] is not self:
-                kr.append(self)
-        return kr
+        """list of Node: ascending order list of key roots of tree with root is `self`.
+
+        Example, for below tree:
+
+                               root
+                    ---------------------------
+                    a            b            c
+               -----------   ----------     ------
+               a1       a2   b1      b2     c1  c2
+               ---      ---  ---  --------
+               a1a      a2a  b1a  b2a  b2b
+            ----------
+            a1a1  a1a2
+
+        Keyroots in ascending order: ['a1a2', 'b2b', 'a2', 'b2', 'c2', 'b', 'c', 'root']
+
+        """
+
+        # Descending order
+        kr = [n for n in self.traverse_levelorder() if n.is_keyroot]
+        if self not in kr:
+            kr.insert(0, self)
+
+        # Reverse to ascending, but keep sibling order
+        ascending_kr = []
+        for r in kr:
+            if not ascending_kr:
+                ascending_kr.append(r)
+                continue
+            for cursor in ascending_kr:
+                if r.depth < cursor.depth:
+                    ascending_kr.insert(0, r)
+                    break
+                elif r.depth > cursor.depth:
+                    ascending_kr.insert(ascending_kr.index(cursor), r)
+                    break
+
+        return ascending_kr
+
+    @property
+    def leftmost(self):
+        """Node: leftmost leaf descendant node in postorder traversal."""
+        return self.nodes_by_postorder[0]
 
     def _validate_node(self, node):
         """Make sure `node` is valid for `self` to operate on.
@@ -524,8 +574,8 @@ class Node(object):
                         visited: arbitrary value,
                         bool: stop traversal flag
                     )
-                Default:
-                    lambda node: (node, 0)
+                By default, return (node, 0)
+
         Returns:
             list: list of visited node, the last one is "the one" node stop the traversal
         """
@@ -571,8 +621,8 @@ class Node(object):
                         visited: arbitrary value,
                         bool: stop traversal flag
                     )
-                Default:
-                    lambda node: (node, 0)
+                By default, return (node, 0)
+
         Returns:
             list: list of visited node, the last one is "the one" node stop the traversal
         """
@@ -783,17 +833,17 @@ class Tree(object):
     @property
     def nodes_by_preorder(self):
         """list: list of all nodes in preorder traversal."""
-        return self.root.traverse_preorder()
+        return self.root.nodes_by_preorder
 
     @property
     def nodes_by_postorder(self):
         """list: list of all nodes in postorder traversal."""
-        return self.root.traverse_postorder()
+        return self.root.nodes_by_postorder
 
     @property
     def nodes_by_levelorder(self):
         """list: list of all nodes in levelorder traversal."""
-        return self.root.traverse_levelorder()
+        return self.root.nodes_by_levelorder
 
     def build_tree(self, source_data, verbose=0):
         """Build subtrees from a list of node paths or dictionary hierarchy.

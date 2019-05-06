@@ -32,8 +32,11 @@ By `tree_util_lite.core.tree.Node`
  * `ancestor` (list of Node):
  * `descendant` (list of Node):
  * `sibling` (list of Node):
- * `leftmost` (Node):
+ * `nodes_by_preorder` (list of Node):
+ * `nodes_by_postorder` (list of Node):
+ * `nodes_by_levelorder` (list of Node):
  * `keyroots` (list of Node):
+ * `leftmost` (Node):
 
 **Operations**
 

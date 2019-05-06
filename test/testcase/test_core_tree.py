@@ -79,7 +79,7 @@ class TestCoreTree(unittest.TestCase):
 
         return t, root, a, b, c, a1, a1a2, a2a, b1a, c1
 
-    def test_tree_advance_construction(self):
+    def test_tree_advanced_construction(self):
         log_info()
 
         # Build from list of paths
@@ -470,7 +470,7 @@ class TestCoreTree(unittest.TestCase):
         self.assertEqual([n.label for n in c.children], ['c_inserted_below'])
         self.assertEqual(c_inserted_below.parent, c)
 
-    def test_node_operation_advance(self):
+    def test_node_operation_advanced(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
@@ -486,11 +486,11 @@ class TestCoreTree(unittest.TestCase):
             [n.label for n in root.keyroots],
             [
                 'a1a2',
-                'a2',
                 'b2b',
+                'a2',
                 'b2',
-                'b',
                 'c2',
+                'b',
                 'c',
                 'root',
             ]
@@ -508,6 +508,40 @@ class TestCoreTree(unittest.TestCase):
             [
                 'c2',
                 'c',
+            ]
+        )
+
+        self.assertEqual(
+            [n.label for n in root.nodes_by_postorder],
+            [
+                'a1a1',
+                'a1a2',
+                'a1a',
+                'a1',
+                'a2a',
+                'a2',
+                'a',
+                'b1a',
+                'b1',
+                'b2a',
+                'b2b',
+                'b2',
+                'b',
+                'c1',
+                'c2',
+                'c',
+                'root'
+            ]
+        )
+        self.assertEqual(
+            [n.label for n in b.nodes_by_postorder],
+            [
+                'b1a',
+                'b1',
+                'b2a',
+                'b2b',
+                'b2',
+                'b',
             ]
         )
 
