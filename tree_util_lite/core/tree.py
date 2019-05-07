@@ -49,10 +49,10 @@ class Node(object):
         ancestor (list of Node):
         descendant (list of Node):
         sibling (list of Node):
-        nodes_by_preorder (list of Node):
-        nodes_by_postorder (list of Node):
-        nodes_by_levelorder (list of Node):
-        keyroots (list of Node):
+        nodes_by_preorder (tuple of Node):
+        nodes_by_postorder (tuple of Node):
+        nodes_by_levelorder (tuple of Node):
+        keyroots (tuple of Node):
         leftmost (Node):
 
     Methods:
@@ -222,22 +222,22 @@ class Node(object):
 
     @property
     def nodes_by_preorder(self):
-        """list: list of all nodes in preorder traversal of subtree rooted at `self`."""
-        return self.traverse_preorder()
+        """tuple: sequence of all nodes in preorder traversal of subtree rooted at `self`."""
+        return tuple(self.traverse_preorder())
 
     @property
     def nodes_by_postorder(self):
-        """list: list of all nodes in postorder traversal of subtree rooted at `self`."""
-        return self.traverse_postorder()
+        """tuple: sequence of all nodes in postorder traversal of subtree rooted at `self`."""
+        return tuple(self.traverse_postorder())
 
     @property
     def nodes_by_levelorder(self):
-        """list: list of all nodes in levelorder traversal of subtree rooted at `self`."""
-        return self.traverse_levelorder()
+        """tuple: sequence of all nodes in levelorder traversal of subtree rooted at `self`."""
+        return tuple(self.traverse_levelorder())
 
     @property
     def keyroots(self):
-        """list of Node: ascending order list of key roots of tree with root is `self`.
+        """tuple of Node: ascending order sequence of key roots of tree with root is `self`.
 
         Example, for below tree:
 
@@ -274,7 +274,7 @@ class Node(object):
                     ascending_kr.insert(ascending_kr.index(cursor), r)
                     break
 
-        return ascending_kr
+        return tuple(ascending_kr)
 
     @property
     def leftmost(self):
@@ -784,9 +784,9 @@ class Tree(object):
         tree_name (str):
         root (Node):
         node_count (int):
-        nodes_by_preorder (list of Node):
-        nodes_by_postorder (list of Node):
-        nodes_by_levelorder (list of Node):
+        nodes_by_preorder (tuple of Node):
+        nodes_by_postorder (tuple of Node):
+        nodes_by_levelorder (tuple of Node):
 
     Methods:
         build_tree()
@@ -832,17 +832,17 @@ class Tree(object):
 
     @property
     def nodes_by_preorder(self):
-        """list: list of all nodes in preorder traversal."""
+        """tuple: sequence of all nodes in preorder traversal."""
         return self.root.nodes_by_preorder
 
     @property
     def nodes_by_postorder(self):
-        """list: list of all nodes in postorder traversal."""
+        """tuple: sequence of all nodes in postorder traversal."""
         return self.root.nodes_by_postorder
 
     @property
     def nodes_by_levelorder(self):
-        """list: list of all nodes in levelorder traversal."""
+        """tuple: sequence of all nodes in levelorder traversal."""
         return self.root.nodes_by_levelorder
 
     def build_tree(self, source_data, verbose=0):
