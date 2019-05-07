@@ -69,7 +69,7 @@ class ZhangShasha(TreeDistance):
                         FD[di - 1][dj - 1] + (self._rel_cost if self.T1[di].label != self.T2[dj].label else 0)
                     )
                     TD[di][dj] = FD[di][dj]
-                    print('----Updated subtree distance: T1[{}] -> T2[{}]'.format(di, dj))
+                    # print('----Updated subtree distance: T1[{}] -> T2[{}]'.format(di, dj))
                 else:
                     FD[di][dj] = min(
                         FD[di - 1][dj] + self._del_cost,
@@ -87,11 +87,3 @@ class ZhangShasha(TreeDistance):
         for kr1 in self.KR1:
             for kr2 in self.KR2:
                 self._forest_dist(kr1, kr2, self.L1, self.L2, self._TD)
-
-        # Add top row and left column,
-        # corresponding to empty subtree in `self.T1` and empty subtree in `self.T2`
-        # self._TD.insert(0, self._TD.pop())
-        # for row in self._TD:
-        #     row.insert(0, row.pop())
-        #     row = tuple(row)
-        # self._TD = tuple(self._TD)

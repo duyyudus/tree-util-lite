@@ -62,28 +62,28 @@ class TestTreeDistance(unittest.TestCase):
 
         # Test T1, T2
         # log_info([n.label for n in treedist.T1])
-        self.assertEqual(treedist.T1, t1.root.nodes_by_postorder)
+        self.assertEqual(list(treedist.T1), [None] + list(t1.root.nodes_by_postorder))
         # log_info([n.label for n in treedist.T2])
-        self.assertEqual(treedist.T2, t2.root.nodes_by_postorder)
+        self.assertEqual(list(treedist.T2), [None] + list(t2.root.nodes_by_postorder))
 
         # Test L1, L2
         self.assertEqual(
             treedist.L1,
-            (0, 0, 2, 0, 4, 4, 6, 7, 6, 4, 0)
+            (0, 1, 1, 3, 1, 5, 5, 7, 8, 7, 5, 1)
         )
         self.assertEqual(
             treedist.L2,
-            (0, 0, 2, 0, 4, 4, 6, 6, 8, 6, 10, 10, 6, 0)
+            (0, 1, 1, 3, 1, 5, 5, 7, 7, 9, 7, 11, 11, 7, 1)
         )
 
         # Test KR1, KR2
         self.assertEqual(
             treedist.KR1,
-            (7, 2, 8, 9, 10)
+            (8, 3, 9, 10, 11)
         )
         self.assertEqual(
             treedist.KR2,
-            (8, 2, 11, 5, 12, 13)
+            (9, 3, 12, 6, 13, 14)
         )
 
     def test_zhang_shasha(self):
@@ -111,33 +111,34 @@ class TestTreeDistance(unittest.TestCase):
         t2 = tree.Tree('t2', root_name='r2', verbose=1)
         t2.build_tree(p2)
 
-        treedist = ZhangShasha(t1.root, t2.root)
+        treedist = ZhangShasha(t1.root, t2.root, del_cost=2, ins_cost=2, rel_cost=1)
         treedist.compute_tree_distance()
         treedist.show_matrix(treedist.TD)
+        treedist.compute_edit_sequence(show_matrix=1)
 
         # Test 2
         p1 = [
-            'a',
+            'a/a1',
+            'a/a2',
             'b',
-            'c'
         ]
         t1 = tree.Tree('t1', root_name='r1', verbose=1)
         t1.build_tree(p1)
 
         p2 = [
-            'b',
-            'c',
+            'a',
+            'c/b',
         ]
         t2 = tree.Tree('t2', root_name='r2', verbose=1)
         t2.build_tree(p2)
 
-        treedist = ZhangShasha(t1.root, t2.root)
+        treedist = ZhangShasha(t1.root, t2.root, del_cost=1, ins_cost=1, rel_cost=0)
         treedist.compute_tree_distance()
         treedist.show_matrix(treedist.TD)
 
-        edit_seq = treedist.compute_edit_sequence()
+        edit_seq = treedist.compute_edit_sequence(show_matrix=1)
         for p in edit_seq:
-            print(p[0].label if p[0] else 'None', '   ', p[1].label if p[1] else 'None')
+            print(p[0].label if p[0] else 'None', '--->', p[1].label if p[1] else 'None')
 
 
 @log_test(__file__)

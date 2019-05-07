@@ -1,3 +1,4 @@
+import copy
 from tree_util_lite.common.util import *
 
 
@@ -165,37 +166,47 @@ class TreeDistance(object):
         """This method must be implemented in all subclass of `TreeDistance`."""
         pass
 
-    def compute_edit_sequence(self):
+    def compute_edit_sequence(self, show_matrix=0):
         """Compute edit sequence from `self._TD`."""
+
+        if show_matrix:
+            td = copy.deepcopy(self._TD)
+
         edit_seq = []
         cursor = [len(self._TD) - 1, len(self._TD[0]) - 1]
-        while cursor[0] >= 0 and cursor[1] >= 0:
+        while cursor[0] > 0 and cursor[1] > 0:
+            td[cursor[0]][cursor[1]] = '[{}]'.format(td[cursor[0]][cursor[1]])
+
             costs = [
-                self._TD[cursor[0]][cursor[1] - 1] if cursor[1] > 0 else 99999,
-                self._TD[cursor[0] - 1][cursor[1]] if cursor[0] > 0 else 99999,
+                self._TD[cursor[0]][cursor[1] - 1] if cursor[1] > 0 else 0xffffffffff,
+                self._TD[cursor[0] - 1][cursor[1]] if cursor[0] > 0 else 0xffffffffff,
                 self._TD[cursor[0] - 1][cursor[1] - 1],
             ]
             min_cost_id = costs.index(min(costs))
             if min_cost_id == 0:
                 # Insert operation
-                edit_seq.insert(0, (None, self.T2[cursor[1] - 1]))
+                edit_seq.insert(0, (None, self.T2[cursor[1]]))
                 cursor[1] -= 1
             elif min_cost_id == 1:
                 # Delete operation
-                edit_seq.insert(0, (self.T1[cursor[0] - 1], None))
+                edit_seq.insert(0, (self.T1[cursor[0]], None))
                 cursor[0] -= 1
             else:
                 # Relabel operation
-                edit_seq.insert(0, (self.T1[cursor[0] - 1], self.T2[cursor[1] - 1]))
+                edit_seq.insert(0, (self.T1[cursor[0]], self.T2[cursor[1]]))
                 cursor[0] -= 1
                 cursor[1] -= 1
+
+        if show_matrix:
+            self.show_matrix(td)
 
         return edit_seq
 
     def show_matrix(self, matrix):
         print('')
         for row in matrix:
-            s = ''.join([str(n) + ' ' * (4 - len(str(n))) for n in row])
+            s = ''.join([(' ' if not str(n).startswith('[') else '') +
+                         str(n) + ' ' * (4 - len(str(n)) - (1 if not str(n).startswith('[') else 0)) for n in row])
             print(s)
         print('')
 
