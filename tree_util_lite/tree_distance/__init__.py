@@ -10,8 +10,69 @@ class TreeDistance(object):
     Attributes:
         _r1 (core.tree.Node):
         _r2 (core.tree.Node):
-        _T1 (list of core.tree.Node): all postorder nodes of tree rooted at `_r1`
-        _T2 (list of core.tree.Node): all postorder nodes of tree rooted at `_r2`
+
+        _T1 (list of core.tree.Node): postorder sequence of nodes of tree rooted at `self._r1`
+            None is put at the first position to represent null node
+        _T2 (list of core.tree.Node): postorder sequence of nodes of tree rooted at `self._r2`
+            None is put at the first position to represent null node
+
+        _L1 (tuple of int): size = len(self._T1)
+            L[i] is index in `self.T1` of leftmost leaf descendant of i'th node in `self._T1`
+            Example, for below tree:
+
+                          r1
+                    --------------
+                    a            b
+                -----------   ----------
+                a1       a2   b1      b2
+
+                   0      1     2     3    4     5     6    7     <---- index of items in _T1
+            _T1 = (None, 'a1', 'a2', 'a', 'b1', 'b2', 'b', 'r1')
+            _L1 = (0,     1,    2,    1,   4,    5,    4,   1  )
+
+            Explain:
+
+                For i = 4, we have _T1[4] is node 'b1',
+                leftmost leaf descendant of 'b1' is itself as it has no children,
+                index of 'b1' in _T1 is 4,
+                hence _L1[4] = 4
+
+                For i = 7, we have _T1[7] is node 'r1',
+                leftmost leaf descendant of 'r1' is 'a1',
+                index of 'a1' in _T1 is 1,
+                hence _L1[7] = 1
+
+        _L2 (tuple of int): analog as _L1
+
+        _KR1 (tuple of int): sequence of indices in `self._T1` of keyroots of tree rooted at `self._r1`
+            Example, for below tree:
+
+                          r1
+                    --------------
+                    a            b
+                -----------   ----------
+                a1       a2   b1      b2
+                ---           ---  --------
+                a1a           b1a  b2a  b2b
+
+                    0      1      2     3     4    5      6     7      8      9     10   11  <---- index of items in _T1
+            _T1  = (None, 'a1a', 'a1', 'a2', 'a', 'b1a', 'b1', 'b2a', 'b2b', 'b2', 'b', 'r1')
+            _KR1 = (8, 3, 9, 10, 11)
+
+            Explain:
+
+                For i = 2, we have _KR1[2] is 9 which is index in _T1 of node 'b2'
+                'b2' is a keyroot since it has left-sibling is 'b1'
+
+                For i = 4, we have _KR1[4] is 11 which is index in _T1 of node 'r1'
+                'r1' is a keyroot itself since it is root of the tree we are dealing with
+
+        _KR2 (tuple of int): analog to _KR1
+
+        _TD (list of list of int): 2-dimension array with size len(self._T1) x len(self._T2)
+            Also known as "tree distance matrix"
+            _TD[i][j] is tree distance value of 2 subtree with root at `self._T1[i]` and `self._T2[j]`
+
         _del_cost (int):
         _ins_cost (int):
         _rel_cost (int):
@@ -19,14 +80,12 @@ class TreeDistance(object):
     Properties:
         r1 (core.tree.Node):
         r2 (core.tree.Node):
-        T1 (tuple of core.tree.Node): all postorder nodes of tree rooted at `_r1`
-        T2 (tuple of core.tree.Node): all postorder nodes of tree rooted at `_r2`
-        L1 (tuple of int): L[i] is index in `self.T1` of leftmost leaf descendant of i'th node in `self.T1`
-        L2 (tuple of int): L[i] is index in `self.T2` of leftmost leaf descendant of i'th node in `self.T2`
-        KR1 (tuple of int): sequence of indices in `self.T1` of keyroots of tree rooted at `self._r1`
-        KR2 (tuple of int): sequence of indices in `self.T2` of keyroots of tree rooted at `self._r2`
+        TD (tuple of tuple of int): immutable version of self._TD
 
     Methods:
+        compute_tree_distance
+        compute_edit_sequence
+        show_matrix
         set_del_cost
         set_ins_cost
         set_rel_cost
@@ -49,14 +108,14 @@ class TreeDistance(object):
         self._ins_cost = ins_cost
         self._rel_cost = rel_cost
 
-        self._T1 = [None] + list(self._r1.nodes_by_postorder)
-        self._T2 = [None] + list(self._r2.nodes_by_postorder)
-        self._L1 = [self._T1.index(n.leftmost) if n else 0 for n in self._T1]
-        self._L2 = [self._T2.index(n.leftmost) if n else 0 for n in self._T2]
-        self._KR1 = [self._T1.index(n) for n in self._r1.keyroots]
-        self._KR2 = [self._T2.index(n) for n in self._r2.keyroots]
+        self._T1 = tuple([None] + list(self._r1.nodes_by_postorder))
+        self._T2 = tuple([None] + list(self._r2.nodes_by_postorder))
+        self._L1 = tuple([self._T1.index(n.leftmost) if n else 0 for n in self._T1])
+        self._L2 = tuple([self._T2.index(n.leftmost) if n else 0 for n in self._T2])
+        self._KR1 = tuple([self._T1.index(n) for n in self._r1.keyroots])
+        self._KR2 = tuple([self._T2.index(n) for n in self._r2.keyroots])
 
-        self._TD = [[0 for j in range(len(self._T2))] for i in range(len(self._T1))]
+        self._TD = [[None for j in range(len(self._T2))] for i in range(len(self._T1))]
 
     @property
     def r1(self):
@@ -69,98 +128,11 @@ class TreeDistance(object):
         return self._r2
 
     @property
-    def T1(self):
-        """tuple of core.tree.Node: postorder sequence of nodes of tree rooted at `self._r1`."""
-        return tuple(self._T1)
-
-    @property
-    def T2(self):
-        """tuple of core.tree.Node: postorder sequence of nodes of tree rooted at `self._r2`."""
-        return tuple(self._T2)
-
-    @property
-    def L1(self):
-        """tuple of int: size = len(self.T1)
-
-        L[i] is index in `self.T1` of leftmost leaf descendant of i'th node in `self.T1`
-
-        Example, for below tree:
-
-                      r1
-                --------------
-                a            b
-            -----------   ----------
-            a1       a2   b1      b2
-
-               0     1     2    3     4     5    6    <---- index of items in T1
-        T1 = ('a1', 'a2', 'a', 'b1', 'b2', 'b', 'r1')
-        L1 = ( 0,    1,    0,   3,    4,    3,   0  )
-
-        Explain:
-
-            For i = 3, we have T1[3] is node 'b1',
-            leftmost leaf descendant of 'b1' is itself as it has no children,
-            index of 'b1' in T1 is 3,
-            hence L[3] = 3
-
-            For i = 6, we have T1[6] is node 'r1',
-            leftmost leaf descendant of 'r1' is 'a1',
-            index of 'a1' in T1 is 0,
-            hence L[6] = 0
-
-        """
-        return tuple(self._L1)
-
-    @property
-    def L2(self):
-        """tuple of int: size = len(self.T2)
-
-        L[i] is index in `self.T2` of leftmost leaf descendant of i'th node in `self.T2`
-        """
-        return tuple(self._L2)
-
-    @property
-    def KR1(self):
-        """tuple of int: sequence of indices in `self.T1` of keyroots of tree rooted at `self._r1`
-
-        Example, for below tree:
-
-                      r1
-                --------------
-                a            b
-            -----------   ----------
-            a1       a2   b1      b2
-            ---           ---  --------
-            a1a           b1a  b2a  b2b
-
-                0      1     2     3    4      5     6      7      8     9    10    <---- index of items in T1
-        T1  = ('a1a', 'a1', 'a2', 'a', 'b1a', 'b1', 'b2a', 'b2b', 'b2', 'b', 'r1')
-        KR1 = (7, 2, 8, 9, 10)
-
-        Explain:
-
-            For i = 2, we have KR1[2] is 8 which is index in T1 of node 'b2'
-            'b2' is a keyroot since it has left-sibling is 'b1'
-
-            For i = 4, we have KR1[4] is 10 which is index in T1 of node 'r1'
-            'r1' is a keyroot itself since it is root of the tree we are dealing with
-
-        """
-        return tuple(self._KR1)
-
-    @property
-    def KR2(self):
-        """tuple of int: sequence of indices in `self.T2` of keyroots of tree rooted at `self._r2`"""
-        return tuple(self._KR2)
-
-    @property
     def TD(self):
-        """tuple of tuple of int: 2-dimension array with size len(self.T1) x len(self.T2)
-
-        Also known as "tree distance matrix"
-        TD[i][j] is tree distance value of 2 subtree with root at `self.T1[i]` and `self.T2[j]`
-        """
-        return self._TD
+        td = []
+        for row in self._TD:
+            td.append(tuple(row))
+        return tuple(td)
 
     def compute_tree_distance(self):
         """This method must be implemented in all subclass of `TreeDistance`."""
@@ -170,43 +142,61 @@ class TreeDistance(object):
         """Compute edit sequence from `self._TD`."""
 
         if show_matrix:
-            td = copy.deepcopy(self._TD)
+            distance_matrix = copy.deepcopy(self._TD)
 
         edit_seq = []
         cursor = [len(self._TD) - 1, len(self._TD[0]) - 1]
-        while cursor[0] > 0 and cursor[1] > 0:
-            td[cursor[0]][cursor[1]] = '[{}]'.format(td[cursor[0]][cursor[1]])
+        while (cursor[0] + cursor[1]) > 0:
+            distance_matrix[cursor[0]][cursor[1]] = '[{}]'.format(distance_matrix[cursor[0]][cursor[1]])
 
-            costs = [
-                self._TD[cursor[0]][cursor[1] - 1] if cursor[1] > 0 else 0xffffffffff,
-                self._TD[cursor[0] - 1][cursor[1]] if cursor[0] > 0 else 0xffffffffff,
-                self._TD[cursor[0] - 1][cursor[1] - 1],
-            ]
-            min_cost_id = costs.index(min(costs))
+            min_cost_id = None
+            if cursor[0] > 0 and cursor[1] > 0:
+                if self._T1[cursor[0]].label == self._T2[cursor[1]].label:
+                    min_cost_id = 2
+
+            if not min_cost_id:
+                costs = [
+                    self._TD[cursor[0]][cursor[1] - 1] if cursor[1] > 0 else 0xffffffffff,
+                    self._TD[cursor[0] - 1][cursor[1]] if cursor[0] > 0 else 0xffffffffff,
+                    self._TD[cursor[0] - 1][cursor[1] - 1] if cursor[0] > 0 and cursor[1] > 0 else 0xffffffffff,
+                ]
+                min_cost_id = costs.index(min(costs))
             if min_cost_id == 0:
                 # Insert operation
-                edit_seq.insert(0, (None, self.T2[cursor[1]]))
+                edit_seq.insert(0, (None, self._T2[cursor[1]]))
                 cursor[1] -= 1
             elif min_cost_id == 1:
                 # Delete operation
-                edit_seq.insert(0, (self.T1[cursor[0]], None))
+                edit_seq.insert(0, (self._T1[cursor[0]], None))
                 cursor[0] -= 1
             else:
                 # Relabel operation
-                edit_seq.insert(0, (self.T1[cursor[0]], self.T2[cursor[1]]))
+                edit_seq.insert(0, (self._T1[cursor[0]], self._T2[cursor[1]]))
                 cursor[0] -= 1
                 cursor[1] -= 1
 
         if show_matrix:
-            self.show_matrix(td)
+            for i, row in enumerate(distance_matrix):
+                row.insert(0, self._T1[i].label if self._T1[i] else '')
+            t2_row = [''] + [n.label if n else '' for n in self._T2]
+            distance_matrix.insert(0, t2_row)
+            self.show_matrix(distance_matrix)
 
         return edit_seq
 
-    def show_matrix(self, matrix):
+    def show_matrix(self, matrix, min_column_size=4, column_spacing=1):
+        print('')
+        column_size = max([len(str(n)) + column_spacing for n in matrix[0]] + [min_column_size + column_spacing])
+        print('Distance matrix:')
         print('')
         for row in matrix:
-            s = ''.join([(' ' if not str(n).startswith('[') else '') +
-                         str(n) + ' ' * (4 - len(str(n)) - (1 if not str(n).startswith('[') else 0)) for n in row])
+            if row[0] == '' and row[1] == '':
+                s = ''.join([' ' + str(n) + ' ' * (column_size - len(str(n)) - 1) for n in row])
+            else:
+                s = ''.join(
+                    [(' ' if not str(n).startswith('[') else '') +
+                     str(n) + ' ' * (column_size - len(str(n)) - (1 if not str(n).startswith('[') else 0)) for n in row]
+                )
             print(s)
         print('')
 
