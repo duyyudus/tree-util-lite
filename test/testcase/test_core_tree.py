@@ -42,7 +42,7 @@ class TestCoreTree(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCoreTree, self).__init__(*args, **kwargs)
 
-    def test_tree_basic_construction(self, verbose=1):
+    def _test_tree_basic_construction(self, verbose=1):
         log_info()
         t = Tree('test_tree', 'root', verbose=verbose)
         root = t.root
@@ -79,7 +79,7 @@ class TestCoreTree(unittest.TestCase):
 
         return t, root, a, b, c, a1, a1a2, a2a, b1a, c1
 
-    def test_tree_advanced_construction(self):
+    def _test_tree_advanced_construction(self):
         log_info()
 
         # Build from list of paths
@@ -132,7 +132,7 @@ class TestCoreTree(unittest.TestCase):
         ]:
             self.assertTrue(t.contain_path(p))
 
-    def test_tree_traversal(self):
+    def _test_tree_traversal(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -241,7 +241,7 @@ class TestCoreTree(unittest.TestCase):
         )
         log_info()
 
-    def test_node_property(self):
+    def _test_node_property(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -355,7 +355,7 @@ class TestCoreTree(unittest.TestCase):
             ['a2']
         )
 
-    def test_node_operation_error(self):
+    def _test_node_operation_error(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -400,7 +400,7 @@ class TestCoreTree(unittest.TestCase):
         except Exception as e:
             self.assertTrue(isinstance(e, tree.SameNode))
 
-    def test_node_operation(self):
+    def _test_node_operation(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
@@ -470,7 +470,7 @@ class TestCoreTree(unittest.TestCase):
         self.assertEqual([n.label for n in c.children], ['c_inserted_below'])
         self.assertEqual(c_inserted_below.parent, c)
 
-    def test_node_operation_advanced(self):
+    def _test_node_operation_advanced(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
@@ -545,7 +545,7 @@ class TestCoreTree(unittest.TestCase):
             ]
         )
 
-    def test_tree_property(self):
+    def _test_tree_property(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -626,7 +626,7 @@ class TestCoreTree(unittest.TestCase):
             ]
         )
 
-    def test_tree_operation(self):
+    def _test_tree_operation(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
@@ -768,7 +768,15 @@ class TestCoreTree(unittest.TestCase):
 
     def test_tree_render(self):
         log_info()
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
+
+        r = Node('r')
+        r.add_subpath('a/a1')
+        r.add_subpath('a/a2')
+        r.add_subpath('b')
+        r.add_subpath('c')
+        r.render_subtree()
+
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self._test_tree_basic_construction(verbose=0)
 
         log_info('Render "{}"'.format(t.tree_name))
         root.render_subtree()

@@ -654,7 +654,7 @@ class Node(object):
 
         return discovered
 
-    def render_subtree(self, without_id=1):
+    def render_subtree(self, without_id=1, directory_mode=0):
         """Print tree hierarchy in console."""
 
         cur_root_depth = self.depth
@@ -666,7 +666,36 @@ class Node(object):
             ))
             return 0, 0
 
-        self.traverse_preorder(print_indent)
+        if directory_mode:
+            self.traverse_preorder(print_indent)
+        else:
+            sub_tree_space = '  '
+            for n in self.nodes_by_postorder:
+                n.set_data({})
+                n_children = n.children
+                if n_children:
+                    n.data['width'] = sum([c.data['width'] for c in n_children]) + \
+                        (len(n_children) - 1) * len(sub_tree_space)
+                    c_left_space = n_children[0].data['left_space']
+                    c_right_space = n_children[-1].data['right_space']
+                    n.data['left_space'] = c_left_space + \
+                        ((n.data['width'] - (c_left_space + c_right_space)) // 2 - len(n.label) // 2)
+                    n.data['right_space'] = n.data['width'] - len(n.label) - n.data['left_space']
+                else:
+                    n.data['width'] = len(n.label)
+                    n.data['left_space'] = n.data['right_space'] = 0
+
+            nodes = list(self.nodes_by_levelorder) + [None]
+            s = ''
+            for i, n in enumerate(nodes):
+                if n is None:
+                    print(s)
+                    break
+                if i > 0:
+                    if n.level > nodes[i - 1].level:
+                        print(s)
+                        s = ''
+                s += sub_tree_space + ' ' * n.data['left_space'] + n.label + ' ' * n.data['right_space']
 
     def isolate(self):
         """Isolate `self` from its connected nodes if any.
