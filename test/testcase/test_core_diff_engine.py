@@ -33,6 +33,7 @@ class TestCoreDiffEngine(unittest.TestCase):
     def test_diff_engine(self):
         log_info()
 
+        # Test 1
         p1 = [
             'a/a1/a1a/a1a1',
             'a/a1/a1a/a1a2',
@@ -59,11 +60,48 @@ class TestCoreDiffEngine(unittest.TestCase):
         t2 = Tree('t2', 'root')
         t2.build_tree(p2)
 
-        diff = diff_engine.DiffEngine(t1, t2)
-        diff.compute_edit_sequence(show_matrix=1, show_edit=1, verbose=1)
+        differ = diff_engine.DiffEngine(t1, t2)
+        differ.compute_edit_sequence(show_matrix=0, show_edit=1)
 
-        diff.postprocess_edit_sequence()
-        diff.interpret_diff()
+        differ.postprocess_edit_sequence()
+        differ.interpret_diff()
+
+        # Test 2
+        p1 = [
+            'medRes/asset.ma',
+            'medRes/asset.rig.ma',
+            'medRes/textures/tex_A_v1.tif',
+            'medRes/textures/tex_B_v1.tif',
+            'medRes/textures/tex_C_v1.tif',
+            'proxyRes/asset.ma',
+            'proxyRes/asset.rig.ma',
+        ]
+        t1 = tree.Tree('t1', root_name='last', verbose=1)
+        t1.build_tree(p1)
+        t1.render_tree()
+
+        p2 = [
+            'medRes/asset.ma',
+            'medRes/asset.rig.ma',
+            'medRes/textures/tex_A_v2.tif',
+            'medRes/textures/tex_B_v1.tif',
+            'medRes/textures/tex_C_v2.tif',
+            'medRes/textures/tex_D_v1.tif',
+            'medRes/old/asset.ma',
+            'medRes/old/textures/tex_A_v1.tif',
+            'medRes/old/textures/tex_C_v1.tif',
+            'proxyRes/asset.ma',
+            'proxyRes/asset.rig.ma',
+        ]
+        t2 = tree.Tree('t2', root_name='last', verbose=1)
+        t2.build_tree(p2)
+        t2.render_tree()
+
+        differ = diff_engine.DiffEngine(t1, t2)
+        differ.compute_edit_sequence(show_matrix=0, show_edit=1)
+        differ.postprocess_edit_sequence(verbose=1)
+
+        differ.interpret_diff()
 
 
 @log_test(__file__)

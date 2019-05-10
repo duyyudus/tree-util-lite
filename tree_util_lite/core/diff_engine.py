@@ -8,9 +8,22 @@ class TreeDistAlgo(object):
 
 
 class DiffData(dict):
+    """Store node path with abstract diff types.
+
+    Abstract diff types:
+        'insert': []
+        'delete': []
+        'relabel': []
+        'match': []
+
+    """
 
     def __init__(self):
         super(DiffData, self).__init__()
+        self['insert'] = []
+        self['delete'] = []
+        self['relabel'] = {}
+        self['match'] = {}
 
 
 class DiffEngine(object):
@@ -30,6 +43,7 @@ class DiffEngine(object):
 
     Methods:
         compute_edit_sequence
+        render_edit_sequence
         postprocess_edit_sequence
         interpret_diff
 
@@ -56,7 +70,7 @@ class DiffEngine(object):
 
     @property
     def diff_data(self):
-        """DiffData: """
+        """DiffData: access DiffData without recomputing postprocess edit sequence."""
         return self._diff_data
 
     def compute_edit_sequence(self, show_matrix=0, show_edit=0, verbose=0):
@@ -72,6 +86,10 @@ class DiffEngine(object):
             (node_in_tree1, None): delete edit operation
             (None, node_in_tree2): insert edit operation
 
+        Args:
+            show_matrix (bool): show distance matrix with backtrack path in console
+            show_edit (bool): show edit sequence in console
+
         """
         if self._tree_distance._TD[0][0] is None:
             self._tree_distance.compute_tree_distance(verbose=verbose)
@@ -81,6 +99,9 @@ class DiffEngine(object):
             self.render_edit_sequence()
 
     def render_edit_sequence(self):
+        print('')
+        print('Edit sequence:')
+        print('')
         size = max([len(p[0].label) if p[0] else 0 for p in self._edit_sequence])
         for p in self._edit_sequence:
             label_1 = p[0].label if p[0] else '__'
@@ -100,19 +121,40 @@ class DiffEngine(object):
                 label_2
             )
 
-    def postprocess_edit_sequence(self):
+    def postprocess_edit_sequence(self, tree_distance_algo=TreeDistAlgo.DESCENDANT_ALIGNMENT, verbose=0):
         """Process raw edit sequence to get a more compact diff data.
 
         Edit sequence from different tree distance algorithms will need its own way of postprocessing.
 
+        Args:
+            tree_distance_algo (TreeDistAlgo): process edit sequence generated from a specific tree distance algo
+                By default, it is `TreeDistAlgo.DESCENDANT_ALIGNMENT`
+
         Returns:
             DiffData:
         """
-        self._diff_data = DiffData()
-        return self.diff_data
+        diff = DiffData()
+
+        for a, b in self._edit_sequence:
+            if a and not b:
+                diff['delete'].append(a.nice_path)
+            elif not a and b:
+                diff['insert'].append(b.nice_path)
+            elif a and b and a.label != b.label:
+                diff['relabel'][b.nice_path] = a.nice_path
+            elif a and b:
+                diff['match'][b.nice_path] = a.nice_path
+
+        if verbose:
+            log_info()
+            log_info('Diff data below:')
+            log_info(diff)
+
+        self._diff_data = diff
+        return self._diff_data
 
     def interpret_diff(self):
-        """Interpret diff data in some way, depend on purpose.
+        """Interpret `self._diff_data` in some way, depend on purpose.
 
         Returns:
             dict: interpreted diff data

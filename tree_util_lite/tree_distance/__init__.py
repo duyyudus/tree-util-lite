@@ -141,6 +141,9 @@ class TreeDistance(object):
     def compute_edit_sequence(self, show_matrix=0):
         """Compute edit sequence from `self._TD`.
 
+        Args:
+            show_matrix (bool): show distance matrix with backtrack path
+
         Returns:
             list of 2-tuple: each tuple is an edit pair, a mapping from node in `self._T1` to one in `self._T2`
                 (core.tree.Node, None): delete edit operation
@@ -156,7 +159,8 @@ class TreeDistance(object):
         edit_seq = []
         cursor = [len(self._TD) - 1, len(self._TD[0]) - 1]
         while (cursor[0] + cursor[1]) > 0:
-            distance_matrix[cursor[0]][cursor[1]] = '[{}]'.format(distance_matrix[cursor[0]][cursor[1]])
+            if show_matrix:
+                distance_matrix[cursor[0]][cursor[1]] = '[{}]'.format(distance_matrix[cursor[0]][cursor[1]])
 
             min_cost_id = None
             if cursor[0] > 0 and cursor[1] > 0:

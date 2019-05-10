@@ -58,7 +58,46 @@ def build_tree_example():
     t.render_tree(with_id=1)
 
 
-def compute_edit_sequence_example():
+def tree_diff_example():
+    log_info('Building tree for tree diff...')
+    p1 = [
+        'a/a1/a1a/a1a1',
+        'a/a1/a1a/a1a2',
+        'a/a2/a2a',
+        'b/b1/b1a',
+        'b/b2/b2a',
+        'b/b2/b2b',
+        'c/c1',
+        'c/c2',
+    ]
+    t1 = tree.Tree('t1', 'root')
+    t1.build_tree(p1)
+    t1.render_tree()
+
+    p2 = [
+        'a/a1/a1a/a1a1',
+        'a/a1/a1a/a1a3',
+        'a/a2/a2a',
+        'b1n/b1a',
+        'b2n/b2a/b2a1',
+        'b2n/b2b',
+        'c_rel/c1',
+        'c_rel/c2',
+    ]
+    t2 = tree.Tree('t2', 'root')
+    t2.build_tree(p2)
+    t2.render_tree()
+
+    differ = diff_engine.DiffEngine(t1, t2)
+    log_info('Compute edit distance, show distance matrix and edit sequence in console')
+    differ.compute_edit_sequence(show_matrix=1, show_edit=1)
+
+    log_info('Process edit sequence and show diff data in console ( verbose=1 )')
+    differ.postprocess_edit_sequence(verbose=1)
+
+    differ.interpret_diff()
+
+    # Another one
     p1 = [
         'medRes/asset.ma',
         'medRes/asset.rig.ma',
@@ -79,6 +118,8 @@ def compute_edit_sequence_example():
         'medRes/textures/tex_C_v2.tif',
         'medRes/textures/tex_D_v1.tif',
         'medRes/old/asset.ma',
+        'medRes/old/textures/tex_A_v1.tif',
+        'medRes/old/textures/tex_C_v1.tif',
         'proxyRes/asset.ma',
         'proxyRes/asset.rig.ma',
     ]
@@ -86,12 +127,15 @@ def compute_edit_sequence_example():
     t2.build_tree(p2)
 
     diff = diff_engine.DiffEngine(t1, t2)
-    diff.compute_edit_sequence(show_matrix=1, show_edit=1)
+    log_info('Compute edit distance, show edit sequence in console')
+    diff.compute_edit_sequence(show_matrix=0, show_edit=1)
 
-    diff.postprocess_edit_sequence()
+    log_info('Process edit sequence and show diff data in console ( verbose=1 )')
+    diff.postprocess_edit_sequence(verbose=1)
+
     diff.interpret_diff()
 
 
 if __name__ == '__main__':
     build_tree_example()
-    compute_edit_sequence_example()
+    tree_diff_example()
