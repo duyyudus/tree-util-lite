@@ -44,7 +44,7 @@ class TestTreeDistance(unittest.TestCase):
         ]
         t1 = tree.Tree('t1', root_name='r1', verbose=1)
         t1.build_tree(p1)
-        # t1.render_tree(without_id=1)
+        # t1.render_tree(with_id=0)
         log_info()
 
         p2 = [
@@ -57,7 +57,7 @@ class TestTreeDistance(unittest.TestCase):
         ]
         t2 = tree.Tree('t2', root_name='r2', verbose=1)
         t2.build_tree(p2)
-        # t2.render_tree(without_id=1)
+        # t2.render_tree(with_id=0)
 
         treedist = TreeDistance(t1.root, t2.root)
 
@@ -114,6 +114,7 @@ class TestTreeDistance(unittest.TestCase):
 
         treedist = ZhangShasha(t1.root, t2.root, del_cost=5, ins_cost=5, rel_cost=1)
         treedist.compute_tree_distance(verbose=0)
+
         edit_seq = treedist.compute_edit_sequence(show_matrix=1)
         for p in edit_seq:
             print(p[0].label if p[0] else 'None', '--->', p[1].label if p[1] else 'None')

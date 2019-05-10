@@ -42,7 +42,7 @@ class TestCoreTree(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCoreTree, self).__init__(*args, **kwargs)
 
-    def _test_tree_basic_construction(self, verbose=1):
+    def test_tree_basic_construction(self, verbose=1):
         log_info()
         t = Tree('test_tree', 'root', verbose=verbose)
         root = t.root
@@ -79,7 +79,7 @@ class TestCoreTree(unittest.TestCase):
 
         return t, root, a, b, c, a1, a1a2, a2a, b1a, c1
 
-    def _test_tree_advanced_construction(self):
+    def test_tree_advanced_construction(self):
         log_info()
 
         # Build from list of paths
@@ -132,7 +132,7 @@ class TestCoreTree(unittest.TestCase):
         ]:
             self.assertTrue(t.contain_path(p))
 
-    def _test_tree_traversal(self):
+    def test_tree_traversal(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -241,7 +241,7 @@ class TestCoreTree(unittest.TestCase):
         )
         log_info()
 
-    def _test_node_property(self):
+    def test_node_property(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -355,7 +355,7 @@ class TestCoreTree(unittest.TestCase):
             ['a2']
         )
 
-    def _test_node_operation_error(self):
+    def test_node_operation_error(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -400,7 +400,7 @@ class TestCoreTree(unittest.TestCase):
         except Exception as e:
             self.assertTrue(isinstance(e, tree.SameNode))
 
-    def _test_node_operation(self):
+    def test_node_operation(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
@@ -470,7 +470,7 @@ class TestCoreTree(unittest.TestCase):
         self.assertEqual([n.label for n in c.children], ['c_inserted_below'])
         self.assertEqual(c_inserted_below.parent, c)
 
-    def _test_node_operation_advanced(self):
+    def test_node_operation_advanced(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
@@ -545,7 +545,7 @@ class TestCoreTree(unittest.TestCase):
             ]
         )
 
-    def _test_tree_property(self):
+    def test_tree_property(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
@@ -626,7 +626,7 @@ class TestCoreTree(unittest.TestCase):
             ]
         )
 
-    def _test_tree_operation(self):
+    def test_tree_operation(self):
         log_info()
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
         b1, b2 = b.children
@@ -773,44 +773,51 @@ class TestCoreTree(unittest.TestCase):
         r.add_subpath('a/a1')
         r.add_subpath('a/a2')
         r.add_subpath('b')
-        r.add_subpath('c')
+        r.add_subpath('c/c1/c2')
         r.render_subtree()
 
-        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self._test_tree_basic_construction(verbose=0)
+        t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
         log_info('Render "{}"'.format(t.tree_name))
         root.render_subtree()
-        log_info()
         log_info('Render subtree "a"')
         a.render_subtree()
-        log_info()
 
         log_info('Render "{}" after deleting "a1"'.format(t.tree_name))
         a1.delete()
         root.render_subtree()
-        log_info()
 
         log_info('Render "{}" after reparenting "c" to "b1a"'.format(t.tree_name))
         c.set_parent(b1a)
         root.render_subtree()
-        log_info()
 
         log_info('Render "{}" after relabeling and insert "b2" to "b1a"'.format(t.tree_name))
         b1, b2 = b.children
         b2.relabel('b2_relabeled')
         b1a.insert(b2)
         root.render_subtree()
-        log_info()
 
         log_info('Render "{}" after cutting "b2_relabeled" from the tree'.format(t.tree_name))
         b2.cut_parent()
         root.render_subtree()
-        log_info()
 
         log_info('Render "{}" after adding "b2_relabeled" as child to "a"'.format(t.tree_name))
         a.add_children(b2)
         root.render_subtree()
-        log_info()
+
+        root = Node('last')
+        root.add_subpath('medRes/asset.ma')
+        root.add_subpath('medRes/asset.rig.ma')
+        root.add_subpath('medRes/textures/tex_1.tif')
+        root.add_subpath('medRes/textures/tex_2.tif')
+        root.add_subpath('medRes/textures/tex_3.tif')
+        root.add_subpath('medRes/old/asset.ma')
+        root.add_subpath('proxyRes/asset.ma')
+        root.add_subpath('proxyRes/asset.rig.ma')
+        log_info('Render another tree')
+        root.render_subtree()
+        log_info('Render another tree in directory mode')
+        root.render_subtree(directory_mode=1)
 
 
 def _print_visited_node(node):

@@ -50,7 +50,8 @@ class ZhangShasha(TreeDistance):
             log_info('Compute distance between subtree pair at keyroot: T1[{}] -> T2[{}]'.format(i, j))
 
         # Temporary forest distance matrix
-        FD = [[None for j in range(len(self._T2))] for i in range(len(self._T1))]
+        FD = [[None for col in range(len(self._T2))] for row in range(len(self._T1))]
+        FD[0][0] = 0
 
         # Starting cell
         FD[L1[i] - 1][L2[j] - 1] = 0

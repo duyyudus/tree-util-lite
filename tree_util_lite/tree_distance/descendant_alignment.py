@@ -63,3 +63,5 @@ class DescendantAlignment(TreeDistance):
                     TD[i][j - 1] + self._ins_cost,
                     TD[i - 1][j - 1] + (self._rel_cost if self._T1[i].label != self._T2[j].label else 0)
                 )
+                if verbose:
+                    log_info('Updated value at T1[{}] -> T2[{}]'.format(i, j))

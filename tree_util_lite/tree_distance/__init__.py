@@ -139,7 +139,16 @@ class TreeDistance(object):
         pass
 
     def compute_edit_sequence(self, show_matrix=0):
-        """Compute edit sequence from `self._TD`."""
+        """Compute edit sequence from `self._TD`.
+
+        Returns:
+            list of 2-tuple: each tuple is an edit pair, a mapping from node in `self._T1` to one in `self._T2`
+                (core.tree.Node, None): delete edit operation
+                (None, core.tree.Node): insert edit operation
+                (core.tree.Node, core.tree.Node): relabel edit operation
+
+                `None` mean null node, represent for insert or delete operation
+        """
 
         if show_matrix:
             distance_matrix = copy.deepcopy(self._TD)

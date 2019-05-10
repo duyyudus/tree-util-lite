@@ -654,15 +654,21 @@ class Node(object):
 
         return discovered
 
-    def render_subtree(self, without_id=1, directory_mode=0):
-        """Print tree hierarchy in console."""
+    def render_subtree(self, with_id=0, directory_mode=0):
+        """Print tree hierarchy in console.
+
+        By default, tree is rendered in hierarchy mode without node ID
+
+        Args:
+            with_id (bool): render tree with node ID, work in directory mode only
+        """
 
         cur_root_depth = self.depth
 
         def print_indent(node):
             print('|---' * (node.depth - cur_root_depth) + '{} {}'.format(
                 node.label,
-                '' if without_id else '({})'.format(node.id)
+                '' if not with_id else '({})'.format(node.id)
             ))
             return 0, 0
 
@@ -674,28 +680,61 @@ class Node(object):
                 n.set_data({})
                 n_children = n.children
                 if n_children:
+                    # Width
                     n.data['width'] = sum([c.data['width'] for c in n_children]) + \
                         (len(n_children) - 1) * len(sub_tree_space)
-                    c_left_space = n_children[0].data['left_space']
-                    c_right_space = n_children[-1].data['right_space']
-                    n.data['left_space'] = c_left_space + \
-                        ((n.data['width'] - (c_left_space + c_right_space)) // 2 - len(n.label) // 2)
-                    n.data['right_space'] = n.data['width'] - len(n.label) - n.data['left_space']
+
+                    if len(n.label) > n.data['width']:
+                        n.data['width'] = len(n.label)
+                        n.data['left_space'] = n.data['right_space'] = 0
+                    else:
+                        # Left space and right space
+                        c_left_space = n_children[0].data['left_space']
+                        c_right_space = n_children[-1].data['right_space']
+                        n.data['left_space'] = c_left_space + \
+                            ((n.data['width'] - (c_left_space + c_right_space)) // 2 - len(n.label) // 2)
+                        n.data['right_space'] = n.data['width'] - len(n.label) - n.data['left_space']
                 else:
                     n.data['width'] = len(n.label)
                     n.data['left_space'] = n.data['right_space'] = 0
 
             nodes = list(self.nodes_by_levelorder) + [None]
-            s = ''
+            line = ''
+            edge = ''
             for i, n in enumerate(nodes):
                 if n is None:
-                    print(s)
+                    print(edge)
+                    print(line)
                     break
+                parent_xpos = 0
+                if i > 0:
+                    # Next level
+                    if n.level > nodes[i - 1].level:
+                        print(edge)
+                        print(line)
+                        edge = ''
+                        line = ''
+                    if n.parent:
+                        if isinstance(n.parent.data, dict):
+                            if 'x_pos' in n.parent.data:
+                                parent_xpos = n.parent.data['x_pos']
+                                if len(line) < parent_xpos:
+                                    line += ' ' * (parent_xpos - len(line))
+
+                n.data['x_pos'] = len(line)
+                line += ' ' * n.data['left_space'] + n.label + ' ' * n.data['right_space'] + sub_tree_space
+
                 if i > 0:
                     if n.level > nodes[i - 1].level:
-                        print(s)
-                        s = ''
-                s += sub_tree_space + ' ' * n.data['left_space'] + n.label + ' ' * n.data['right_space']
+                        edge += ' ' * (n.data['x_pos'] + n.data['left_space'])
+                        edge += '-' * len(n.label)
+                    else:
+                        if n.parent is nodes[i - 1].parent:
+                            edge += '-' * (len(line) - len(sub_tree_space) - n.data['right_space'] - len(edge))
+                        else:
+                            edge += ' ' * ((n.data['x_pos'] + n.data['left_space']) - len(edge))
+                            edge += '-' * len(n.label)
+        print('')
 
     def isolate(self):
         """Isolate `self` from its connected nodes if any.
@@ -1030,5 +1069,6 @@ class Tree(object):
 
         return node1.lowest_common_ancestor(node2)
 
-    def render_tree(self, without_id=1):
-        self.root.render_subtree(without_id)
+    def render_tree(self, with_id=0, directory_mode=0):
+        """Wrap Node.render_subtree()"""
+        self.root.render_subtree(with_id, directory_mode)
