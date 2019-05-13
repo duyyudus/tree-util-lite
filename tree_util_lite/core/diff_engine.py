@@ -10,11 +10,14 @@ class TreeDistAlgo(object):
 class DiffData(dict):
     """Store node path with abstract diff types.
 
+    This data can be interpreted in some way, depend on purpose
+    Please look at `diff_interpreter` package
+
     Abstract diff types:
-        'insert': []
-        'delete': []
-        'relabel': []
-        'match': []
+        'insert': [list str or Node]
+        'delete': [list str or Node]
+        'relabel': {nice_path: ( str or Node of new tree T2, str or Node of old tree T1 )}
+        'match': {nice_path: ( str or Node of new tree T2, str or Node of old tree T1 )}
 
     """
 
@@ -102,10 +105,10 @@ class DiffEngine(object):
         print('')
         print('Edit sequence:')
         print('')
-        size = max([len(p[0].label) if p[0] else 0 for p in self._edit_sequence])
+        size = max([len(p[0].nice_path) if p[0] else 0 for p in self._edit_sequence])
         for p in self._edit_sequence:
-            label_1 = p[0].label if p[0] else '__'
-            label_2 = p[1].label if p[1] else '__'
+            label_1 = p[0].nice_path if p[0] else '__'
+            label_2 = p[1].nice_path if p[1] else '__'
             tail_1 = ' ' * (size - len(label_1))
             if label_1 == '__':
                 mapping = '--insert--->'
@@ -121,7 +124,10 @@ class DiffEngine(object):
                 label_2
             )
 
-    def postprocess_edit_sequence(self, tree_distance_algo=TreeDistAlgo.DESCENDANT_ALIGNMENT, verbose=0):
+    def postprocess_edit_sequence(self,
+                                  tree_distance_algo=TreeDistAlgo.DESCENDANT_ALIGNMENT,
+                                  return_path=1,
+                                  verbose=0):
         """Process raw edit sequence to get a more compact diff data.
 
         Edit sequence from different tree distance algorithms will need its own way of postprocessing.
@@ -137,13 +143,13 @@ class DiffEngine(object):
 
         for a, b in self._edit_sequence:
             if a and not b:
-                diff['delete'].append(a.nice_path)
+                diff['delete'].append(a.nice_path if return_path else a)
             elif not a and b:
-                diff['insert'].append(b.nice_path)
+                diff['insert'].append(b.nice_path if return_path else b)
             elif a and b and a.label != b.label:
-                diff['relabel'][b.nice_path] = a.nice_path
+                diff['relabel'][b.nice_path] = (b.nice_path, a.nice_path) if return_path else (b, a)
             elif a and b:
-                diff['match'][b.nice_path] = a.nice_path
+                diff['match'][b.nice_path] = (b.nice_path, a.nice_path) if return_path else (b, a)
 
         if verbose:
             log_info()
@@ -152,11 +158,3 @@ class DiffEngine(object):
 
         self._diff_data = diff
         return self._diff_data
-
-    def interpret_diff(self):
-        """Interpret `self._diff_data` in some way, depend on purpose.
-
-        Returns:
-            dict: interpreted diff data
-        """
-        return {}

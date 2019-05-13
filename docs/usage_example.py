@@ -6,6 +6,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from tree_util_lite.common.util import *
 from tree_util_lite.core import tree, diff_engine
+from tree_util_lite.diff_interpreter import asset_vcs_diff
 
 
 def build_tree_example():
@@ -92,48 +93,52 @@ def tree_diff_example():
     log_info('Compute edit distance, show distance matrix and edit sequence in console')
     differ.compute_edit_sequence(show_matrix=1, show_edit=1)
 
-    log_info('Process edit sequence and show diff data in console ( verbose=1 )')
-    differ.postprocess_edit_sequence(verbose=1)
+    log_info('Process edit sequence and show abstract diff data in console ( verbose=1 )')
+    diff_data = differ.postprocess_edit_sequence(verbose=1)
 
-    differ.interpret_diff()
-
-    # Another one
+    # Another one, for asset versioning purpose
     p1 = [
-        'medRes/asset.ma',
-        'medRes/asset.rig.ma',
-        'medRes/textures/tex_A_v1.tif',
-        'medRes/textures/tex_B_v1.tif',
-        'medRes/textures/tex_C_v1.tif',
-        'proxyRes/asset.ma',
-        'proxyRes/asset.rig.ma',
+        'medRes/asset.ma/_dx_h0001',
+        'medRes/asset.rig.ma/_dx_h0002',
+        'medRes/textures/tex_A_v1.tif/_dx_h0003',
+        'medRes/textures/tex_B_v1.tif/_dx_h0004',
+        'medRes/textures/tex_C_v1.tif/_dx_h0005',
+        'proxyRes/asset.ma/_dx_h0006',
+        'proxyRes/asset.rig.ma/_dx_h0007',
     ]
     t1 = tree.Tree('t1', root_name='last', verbose=1)
     t1.build_tree(p1)
+    t1.render_tree()
 
     p2 = [
-        'medRes/asset.ma',
-        'medRes/asset.rig.ma',
-        'medRes/textures/tex_A_v2.tif',
-        'medRes/textures/tex_B_v1.tif',
-        'medRes/textures/tex_C_v2.tif',
-        'medRes/textures/tex_D_v1.tif',
-        'medRes/old/asset.ma',
-        'medRes/old/textures/tex_A_v1.tif',
-        'medRes/old/textures/tex_C_v1.tif',
-        'proxyRes/asset.ma',
-        'proxyRes/asset.rig.ma',
+        'medRes/asset.ma/_dx_h00012',
+        'medRes/asset.rig.ma/_dx_h0002',
+        'medRes/textures/tex_A_v2.tif/_dx_h00032',
+        'medRes/textures/tex_B_v1.tif/_dx_h00042',
+        'medRes/textures/tex_C_v2.tif/_dx_h00052',
+        'medRes/textures/tex_D_v1.tif/_dx_h0008',
+        'medRes/old/asset.ma/_dx_h0001',
+        'medRes/old/textures/tex_A_v1.tif/_dx_h0003',
+        'medRes/old/textures/tex_C_v1.tif/_dx_h0005',
+        'proxyRes/asset.ma/_dx_h0006',
+        'proxyRes/asset.rig.ma/_dx_h0007',
     ]
     t2 = tree.Tree('t2', root_name='last', verbose=1)
     t2.build_tree(p2)
+    t2.render_tree()
 
-    diff = diff_engine.DiffEngine(t1, t2)
+    differ = diff_engine.DiffEngine(t1, t2)
     log_info('Compute edit distance, show edit sequence in console')
-    diff.compute_edit_sequence(show_matrix=0, show_edit=1)
+    differ.compute_edit_sequence(show_matrix=0, show_edit=1)
 
-    log_info('Process edit sequence and show diff data in console ( verbose=1 )')
-    diff.postprocess_edit_sequence(verbose=1)
+    log_info('Process edit sequence and show abstract diff data in console ( verbose=1 )')
+    differ.postprocess_edit_sequence(return_path=1, verbose=1)
 
-    diff.interpret_diff()
+    log_info('Process edit sequence again but return real tree nodes instead of path')
+    diff_data = differ.postprocess_edit_sequence(return_path=0, verbose=0)
+
+    log_info('Interpret abstract diff data using asset versioning convention and show in console')
+    asset_vcs_diff.interpret(diff_data, verbose=1)
 
 
 if __name__ == '__main__':

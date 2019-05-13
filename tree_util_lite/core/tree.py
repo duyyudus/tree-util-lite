@@ -1,6 +1,7 @@
 from tree_util_lite.common.util import *
 
 _STOP_TRAVERSAL = 0xffffffffffff
+_DATA_DELIMITER = '_dx_'
 
 
 class AddAncestorAsChild(TreeUtilError):
@@ -471,6 +472,8 @@ class Node(object):
         If a part in path collide with an existing node label, skip and move to the next part.
         New node verbosity is derived from `self._verbose`.
 
+        The last part of path will be treated as node data if it starts with `_DATA_DELIMITER`
+
         Args:
             args (list): mixed list of [str, Path]
         """
@@ -484,7 +487,9 @@ class Node(object):
         ret = []
         subpath = Path('/'.join([to_part(a) for a in args]))
         cur_node = self
-        for label in subpath.parts:
+        parts = list(subpath.parts)
+        data = parts.pop() if parts[-1].startswith(_DATA_DELIMITER) else None
+        for label in parts:
             exists = 0
             for c in cur_node.children:
                 if label == c.label:
@@ -495,6 +500,8 @@ class Node(object):
             if not exists:
                 cur_node = Node(label, parent=cur_node, verbose=cur_node.verbose)
                 ret.append(cur_node)
+        if data and ret:
+            ret[-1].set_data(data[len(_DATA_DELIMITER):])
         return ret
 
     def contain_subpath(self, subpath):

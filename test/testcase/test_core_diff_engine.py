@@ -62,9 +62,7 @@ class TestCoreDiffEngine(unittest.TestCase):
 
         differ = diff_engine.DiffEngine(t1, t2)
         differ.compute_edit_sequence(show_matrix=0, show_edit=1)
-
         differ.postprocess_edit_sequence()
-        differ.interpret_diff()
 
         # Test 2
         p1 = [
@@ -100,8 +98,6 @@ class TestCoreDiffEngine(unittest.TestCase):
         differ = diff_engine.DiffEngine(t1, t2)
         differ.compute_edit_sequence(show_matrix=0, show_edit=1)
         differ.postprocess_edit_sequence(verbose=1)
-
-        differ.interpret_diff()
 
 
 @log_test(__file__)
