@@ -52,7 +52,11 @@ class DiffEngine(object):
 
     """
 
-    def __init__(self, tree1, tree2, tree_distance_algo=TreeDistAlgo.DESCENDANT_ALIGNMENT):
+    def __init__(self, tree1, tree2,
+                 tree_distance_algo=TreeDistAlgo.DESCENDANT_ALIGNMENT,
+                 del_cost=1,
+                 ins_cost=1,
+                 rel_cost=1):
         """
         Args:
             tree1 (tree.Tree):
@@ -63,9 +67,21 @@ class DiffEngine(object):
         self._tree1 = tree1
         self._tree2 = tree2
         if tree_distance_algo == TreeDistAlgo.ZHANG_SHASHA:
-            self._tree_distance = zhang_shasha.ZhangShasha(tree1.root, tree2.root)
+            self._tree_distance = zhang_shasha.ZhangShasha(
+                tree1.root,
+                tree2.root,
+                del_cost,
+                ins_cost,
+                rel_cost
+            )
         elif tree_distance_algo == TreeDistAlgo.DESCENDANT_ALIGNMENT:
-            self._tree_distance = descendant_alignment.DescendantAlignment(tree1.root, tree2.root)
+            self._tree_distance = descendant_alignment.DescendantAlignment(
+                tree1.root,
+                tree2.root,
+                del_cost,
+                ins_cost,
+                rel_cost
+            )
         else:
             raise Exception('Please choose a tree distance algorithm')
         self._edit_sequence = None
@@ -107,9 +123,11 @@ class DiffEngine(object):
         print('')
         size = max([len(p[0].nice_path) if p[0] else 0 for p in self._edit_sequence])
         for p in self._edit_sequence:
-            label_1 = p[0].nice_path if p[0] else '__'
-            label_2 = p[1].nice_path if p[1] else '__'
-            tail_1 = ' ' * (size - len(label_1))
+            label_1 = p[0].label if p[0] else '__'
+            label_2 = p[1].label if p[1] else '__'
+            path_1 = p[0].nice_path if p[0] else '__'
+            path_2 = p[1].nice_path if p[1] else '__'
+            tail_1 = ' ' * (size - len(path_1))
             if label_1 == '__':
                 mapping = '--insert--->'
             elif label_2 == '__':
@@ -119,9 +137,9 @@ class DiffEngine(object):
             else:
                 mapping = '--relabel-->'
             print(
-                '  {}{}'.format(label_1, tail_1),
+                '  {}{}'.format(path_1, tail_1),
                 mapping,
-                label_2
+                path_2
             )
 
     def postprocess_edit_sequence(self,
@@ -130,6 +148,7 @@ class DiffEngine(object):
                                   verbose=0):
         """Process raw edit sequence to get a more compact diff data.
 
+        Use edit sequence itself and `Node.nice_path` to process.
         Edit sequence from different tree distance algorithms will need its own way of postprocessing.
 
         Args:
@@ -141,19 +160,28 @@ class DiffEngine(object):
         """
         diff = DiffData()
 
-        for a, b in self._edit_sequence:
-            if a and not b:
-                diff['delete'].append(a.nice_path if return_path else a)
-            elif not a and b:
-                diff['insert'].append(b.nice_path if return_path else b)
-            elif a and b and a.label != b.label:
-                diff['relabel'][b.nice_path] = (b.nice_path, a.nice_path) if return_path else (b, a)
-            elif a and b:
-                diff['match'][b.nice_path] = (b.nice_path, a.nice_path) if return_path else (b, a)
+        if tree_distance_algo == TreeDistAlgo.DESCENDANT_ALIGNMENT:
+            for a, b in self._edit_sequence:
+                if a and not b:
+                    diff['delete'].append(a.nice_path if return_path else a)
+                elif not a and b:
+                    diff['insert'].append(b.nice_path if return_path else b)
+                elif a and b and a.label != b.label:
+                    if a.parent.nice_path == b.parent.nice_path:
+                        diff['relabel'][b.nice_path] = (b.nice_path, a.nice_path) if return_path else (b, a)
+                    else:
+                        diff['insert'].append(b.nice_path if return_path else b)
+                        diff['delete'].append(a.nice_path if return_path else a)
+                elif a and b:
+                    if a.nice_path == b.nice_path:
+                        diff['match'][b.nice_path] = (b.nice_path, a.nice_path) if return_path else (b, a)
+                    else:
+                        diff['insert'].append(b.nice_path if return_path else b)
+                        diff['delete'].append(a.nice_path if return_path else a)
 
         if verbose:
             log_info()
-            log_info('Diff data below:')
+            log_info('Abstract diff data below:')
             log_info(diff)
 
         self._diff_data = diff

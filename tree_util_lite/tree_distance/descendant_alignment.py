@@ -45,6 +45,9 @@ class DescendantAlignment(TreeDistance):
         """
         super(DescendantAlignment, self).__init__(r1, r2, del_cost, ins_cost, rel_cost)
 
+        self._T1 = tuple([None] + list(self._r1.nodes_by_preorder))
+        self._T2 = tuple([None] + list(self._r2.nodes_by_preorder))
+
     def compute_tree_distance(self, verbose=0):
         """Compute matrix `self._TD`."""
 

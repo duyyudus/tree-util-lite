@@ -33,7 +33,8 @@ class Node(object):
         verbose (bool):
         label (str):
         id (str):
-        data (dict):
+        data (any):
+        tmp_data (any):
         child_count (int):
         path (Path):
         nice_path (str):
@@ -89,6 +90,7 @@ class Node(object):
         super(Node, self).__init__()
         self._label = label
         self._data = data
+        self._tmp_data = None
         self._parent = parent
         self._children = []
         self._verbose = verbose
@@ -115,6 +117,11 @@ class Node(object):
     def data(self):
         """any type: """
         return self._data
+
+    @property
+    def tmp_data(self):
+        """any type: """
+        return self._tmp_data
 
     @property
     def child_count(self):
@@ -380,6 +387,13 @@ class Node(object):
             data: object/instance of any type
         """
         self._data = data
+
+    def set_tmp_data(self, data):
+        """
+        Args:
+            data: object/instance of any type
+        """
+        self._tmp_data = data
 
     def set_parent(self, parent):
         """
@@ -684,26 +698,26 @@ class Node(object):
         else:
             sub_tree_space = '  '
             for n in self.nodes_by_postorder:
-                n.set_data({})
+                n.set_tmp_data({})
                 n_children = n.children
                 if n_children:
                     # Width
-                    n.data['width'] = sum([c.data['width'] for c in n_children]) + \
+                    n.tmp_data['width'] = sum([c.tmp_data['width'] for c in n_children]) + \
                         (len(n_children) - 1) * len(sub_tree_space)
 
-                    if len(n.label) > n.data['width']:
-                        n.data['width'] = len(n.label)
-                        n.data['left_space'] = n.data['right_space'] = 0
+                    if len(n.label) > n.tmp_data['width']:
+                        n.tmp_data['width'] = len(n.label)
+                        n.tmp_data['left_space'] = n.tmp_data['right_space'] = 0
                     else:
                         # Left space and right space
-                        c_left_space = n_children[0].data['left_space']
-                        c_right_space = n_children[-1].data['right_space']
-                        n.data['left_space'] = c_left_space + \
-                            ((n.data['width'] - (c_left_space + c_right_space)) // 2 - len(n.label) // 2)
-                        n.data['right_space'] = n.data['width'] - len(n.label) - n.data['left_space']
+                        c_left_space = n_children[0].tmp_data['left_space']
+                        c_right_space = n_children[-1].tmp_data['right_space']
+                        n.tmp_data['left_space'] = c_left_space + \
+                            ((n.tmp_data['width'] - (c_left_space + c_right_space)) // 2 - len(n.label) // 2)
+                        n.tmp_data['right_space'] = n.tmp_data['width'] - len(n.label) - n.tmp_data['left_space']
                 else:
-                    n.data['width'] = len(n.label)
-                    n.data['left_space'] = n.data['right_space'] = 0
+                    n.tmp_data['width'] = len(n.label)
+                    n.tmp_data['left_space'] = n.tmp_data['right_space'] = 0
 
             nodes = list(self.nodes_by_levelorder) + [None]
             line = ''
@@ -722,24 +736,24 @@ class Node(object):
                         edge = ''
                         line = ''
                     if n.parent:
-                        if isinstance(n.parent.data, dict):
-                            if 'x_pos' in n.parent.data:
-                                parent_xpos = n.parent.data['x_pos']
+                        if isinstance(n.parent.tmp_data, dict):
+                            if 'x_pos' in n.parent.tmp_data:
+                                parent_xpos = n.parent.tmp_data['x_pos']
                                 if len(line) < parent_xpos:
                                     line += ' ' * (parent_xpos - len(line))
 
-                n.data['x_pos'] = len(line)
-                line += ' ' * n.data['left_space'] + n.label + ' ' * n.data['right_space'] + sub_tree_space
+                n.tmp_data['x_pos'] = len(line)
+                line += ' ' * n.tmp_data['left_space'] + n.label + ' ' * n.tmp_data['right_space'] + sub_tree_space
 
                 if i > 0:
                     if n.level > nodes[i - 1].level:
-                        edge += ' ' * (n.data['x_pos'] + n.data['left_space'])
+                        edge += ' ' * (n.tmp_data['x_pos'] + n.tmp_data['left_space'])
                         edge += '-' * len(n.label)
                     else:
                         if n.parent is nodes[i - 1].parent:
-                            edge += '-' * (len(line) - len(sub_tree_space) - n.data['right_space'] - len(edge))
+                            edge += '-' * (len(line) - len(sub_tree_space) - n.tmp_data['right_space'] - len(edge))
                         else:
-                            edge += ' ' * ((n.data['x_pos'] + n.data['left_space']) - len(edge))
+                            edge += ' ' * ((n.tmp_data['x_pos'] + n.tmp_data['left_space']) - len(edge))
                             edge += '-' * len(n.label)
         print('')
 
