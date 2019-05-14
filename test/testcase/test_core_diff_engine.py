@@ -97,7 +97,7 @@ class TestCoreDiffEngine(unittest.TestCase):
 
         differ = diff_engine.DiffEngine(t1, t2)
         differ.compute_edit_sequence(show_matrix=0, show_edit=1)
-        differ.postprocess_edit_sequence(verbose=1)
+        differ.postprocess_edit_sequence(show_diff=1)
 
 
 @log_test(__file__)

@@ -115,12 +115,12 @@ class Node(object):
 
     @property
     def data(self):
-        """any type: """
+        """any type: for storing metadata, like file hash digest in file/folder tree."""
         return self._data
 
     @property
     def tmp_data(self):
-        """any type: """
+        """any type: for temporary usage."""
         return self._tmp_data
 
     @property
