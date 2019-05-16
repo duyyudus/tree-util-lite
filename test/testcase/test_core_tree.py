@@ -95,7 +95,7 @@ class TestCoreTree(unittest.TestCase):
         ]
         t = Tree('test_tree', 'root', verbose=1)
         t.build_tree(paths)
-        # t.render_tree()
+        # t.render()
         for p in paths:
             self.assertTrue(t.contain_path('root/' + p))
 
@@ -123,7 +123,7 @@ class TestCoreTree(unittest.TestCase):
         }
         t = Tree('test_tree', 'root', verbose=1)
         t.build_tree(hierarchy)
-        # t.render_tree()
+        # t.render()
         for p in [
             'root/a/a1/a1a/a1a1',
             'root/a/a1/a1a/a1a2',
@@ -456,13 +456,13 @@ class TestCoreTree(unittest.TestCase):
         # Test cut node
         a.cut_parent()
         self.assertEqual([n.label for n in root.children], ['c_inserted'])
-        root.render_subtree()
+        root.render()
         log_info()
 
         # Test insert below
         c.add_children(c1, 'c2')
         c_inserted_below = c.insert('c_inserted_below', below=1)
-        root.render_subtree()
+        root.render()
         self.assertEqual(
             set([n.label for n in c_inserted_below.children]),
             set(['c1', 'c2'])
@@ -774,36 +774,36 @@ class TestCoreTree(unittest.TestCase):
         r.add_subpath('a/a2')
         r.add_subpath('b')
         r.add_subpath('c/c1/c2')
-        r.render_subtree()
+        r.render()
 
         t, root, a, b, c, a1, a1a2, a2a, b1a, c1 = self.test_tree_basic_construction(verbose=0)
 
         log_info('Render "{}"'.format(t.tree_name))
-        root.render_subtree()
+        root.render()
         log_info('Render subtree "a"')
-        a.render_subtree()
+        a.render()
 
         log_info('Render "{}" after deleting "a1"'.format(t.tree_name))
         a1.delete()
-        root.render_subtree()
+        root.render()
 
         log_info('Render "{}" after reparenting "c" to "b1a"'.format(t.tree_name))
         c.set_parent(b1a)
-        root.render_subtree()
+        root.render()
 
         log_info('Render "{}" after relabeling and insert "b2" to "b1a"'.format(t.tree_name))
         b1, b2 = b.children
         b2.relabel('b2_relabeled')
         b1a.insert(b2)
-        root.render_subtree()
+        root.render()
 
         log_info('Render "{}" after cutting "b2_relabeled" from the tree'.format(t.tree_name))
         b2.cut_parent()
-        root.render_subtree()
+        root.render()
 
         log_info('Render "{}" after adding "b2_relabeled" as child to "a"'.format(t.tree_name))
         a.add_children(b2)
-        root.render_subtree()
+        root.render()
 
         root = Node('last')
         root.add_subpath('medRes/asset.ma')
@@ -815,9 +815,9 @@ class TestCoreTree(unittest.TestCase):
         root.add_subpath('proxyRes/asset.ma')
         root.add_subpath('proxyRes/asset.rig.ma')
         log_info('Render another tree')
-        root.render_subtree()
+        root.render()
         log_info('Render another tree in directory mode')
-        root.render_subtree(directory_mode=1)
+        root.render(directory_mode=1)
 
 
 def _print_visited_node(node):

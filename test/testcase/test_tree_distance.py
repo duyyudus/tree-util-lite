@@ -44,7 +44,7 @@ class TestTreeDistance(unittest.TestCase):
         ]
         t1 = tree.Tree('t1', root_name='r1', verbose=1)
         t1.build_tree(p1)
-        # t1.render_tree(with_id=0)
+        # t1.render(with_id=0)
         log_info()
 
         p2 = [
@@ -57,7 +57,7 @@ class TestTreeDistance(unittest.TestCase):
         ]
         t2 = tree.Tree('t2', root_name='r2', verbose=1)
         t2.build_tree(p2)
-        # t2.render_tree(with_id=0)
+        # t2.render(with_id=0)
 
         treedist = TreeDistance(t1.root, t2.root)
 

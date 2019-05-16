@@ -76,7 +76,7 @@ class TestCoreDiffEngine(unittest.TestCase):
         ]
         t1 = tree.Tree('t1', root_name='last', verbose=1)
         t1.build_tree(p1)
-        t1.render_tree()
+        t1.render()
 
         p2 = [
             'medRes/asset.ma',
@@ -93,7 +93,7 @@ class TestCoreDiffEngine(unittest.TestCase):
         ]
         t2 = tree.Tree('t2', root_name='last', verbose=1)
         t2.build_tree(p2)
-        t2.render_tree()
+        t2.render()
 
         differ = diff_engine.DiffEngine(t1, t2)
         differ.compute_edit_sequence(show_matrix=0, show_edit=1)

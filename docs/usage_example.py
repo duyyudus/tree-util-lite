@@ -25,9 +25,9 @@ def build_tree_example():
     t = tree.Tree('test_tree', root_name='root', verbose=1)
     t.build_tree(paths)
     log_info('Render tree in hierarchy mode ( default ), without ID')
-    t.render_tree()
+    t.render()
     log_info('Render tree in directory mode, without ID')
-    t.render_tree(directory_mode=1)
+    t.render(directory_mode=1)
     log_info()
 
     # From dict
@@ -55,9 +55,9 @@ def build_tree_example():
     t = tree.Tree('test_tree', 'root', verbose=1)
     t.build_tree(hierarchy)
     log_info('Render tree in directory mode, with ID')
-    t.render_tree(with_id=1, directory_mode=1)
+    t.render(with_id=1, directory_mode=1)
     log_info('Render tree in hierarchy mode, node ID is irrelevant in hierarchy mode')
-    t.render_tree(with_id=1)
+    t.render(with_id=1)
 
 
 def tree_diff_example():
@@ -74,7 +74,7 @@ def tree_diff_example():
     ]
     t1 = tree.Tree('t1', 'root')
     t1.build_tree(p1)
-    t1.render_tree()
+    t1.render()
 
     p2 = [
         'a/a1/a1a/a1a1',
@@ -88,7 +88,7 @@ def tree_diff_example():
     ]
     t2 = tree.Tree('t2', 'root')
     t2.build_tree(p2)
-    t2.render_tree()
+    t2.render()
 
     differ = diff_engine.DiffEngine(t1, t2)
     log_info('Compute edit distance, show distance matrix and edit sequence in console')
@@ -109,7 +109,7 @@ def tree_diff_example():
     ]
     t1 = tree.Tree('t1', root_name='last', verbose=1)
     t1.build_tree(p1)
-    t1.render_tree()
+    t1.render()
 
     p2 = [
         'medRes/asset.ma/_dx_h00012',
@@ -126,7 +126,7 @@ def tree_diff_example():
     ]
     t2 = tree.Tree('t2', root_name='last', verbose=1)
     t2.build_tree(p2)
-    t2.render_tree()
+    t2.render()
 
     differ = diff_engine.DiffEngine(t1, t2)
     log_info('Compute edit distance, show edit sequence in console')

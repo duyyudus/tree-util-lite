@@ -69,7 +69,7 @@ class Node(object):
         traverse_preorder()
         traverse_postorder()
         traverse_levelorder()
-        render_subtree()
+        render()
         isolate()
         insert()
         delete()
@@ -675,7 +675,7 @@ class Node(object):
 
         return discovered
 
-    def render_subtree(self, with_id=0, directory_mode=0):
+    def render(self, with_id=0, directory_mode=0):
         """Print tree hierarchy in console.
 
         By default, tree is rendered in hierarchy mode without node ID
@@ -885,7 +885,7 @@ class Tree(object):
         insert()
         delete()
         lowest_common_ancestor()
-        render_tree()
+        render()
 
     """
 
@@ -1090,6 +1090,6 @@ class Tree(object):
 
         return node1.lowest_common_ancestor(node2)
 
-    def render_tree(self, with_id=0, directory_mode=0):
-        """Wrap Node.render_subtree()"""
-        self.root.render_subtree(with_id, directory_mode)
+    def render(self, with_id=0, directory_mode=0):
+        """Wrap `Node.render()`"""
+        self.root.render(with_id, directory_mode)

@@ -68,7 +68,7 @@ By `tree_util_lite.core.tree.Node`
 * `traverse_preorder()`
 * `traverse_postorder()`
 * `traverse_levelorder()`
-* `render_subtree()`
+* `render()`
 * `isolate()`
 * `insert()`
 * `delete()`
@@ -97,7 +97,7 @@ By `tree_util_lite.core.tree.Tree`
 * `insert()`
 * `delete()`
 * `lowest_common_ancestor()`
-* `render_tree()`
+* `render()`
 
 ## Popular usages
 
