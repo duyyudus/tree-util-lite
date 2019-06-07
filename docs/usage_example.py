@@ -29,10 +29,10 @@ def build_tree_example():
     log_info('Render tree in directory mode, without ID')
     t.render(directory_mode=1)
     log_info()
-    log_info('All left nodes with data')
+    log_info('All leaf nodes with data')
     log_info(t.ls_all_leaves())
-    log_info('All left nodes without data')
-    log_info(t.ls_all_leaves(with_data=0))
+    log_info('All leaf nodes relatively without data')
+    log_info(t.ls_all_leaves(with_data=0, relative=1))
 
     # From dict
     hierarchy = {

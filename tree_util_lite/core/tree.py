@@ -863,12 +863,13 @@ class Node(object):
             if self_ancestor[i] is node_ancestor[i]:
                 return self_ancestor[i]
 
-    def ls_all_leaves(self, with_data, as_path):
+    def ls_all_leaves(self, with_data, as_path, relative):
         """List all leaf nodes.
 
         Args:
             with_data (bool):
             as_path (bool):
+            relative (bool):
         Returns:
             list:
         """
@@ -878,7 +879,8 @@ class Node(object):
                 continue
             if as_path:
                 d = '/{}'.format(_DATA_DELIMITER + str(n.data)) if with_data else ''
-                ret.append(n.nice_path + d)
+                p = Path(*n.path.parts[1:]).as_posix() if relative else n.nice_path
+                ret.append(p + d)
             else:
                 ret.append(n)
         return ret
@@ -1113,7 +1115,7 @@ class Tree(object):
 
         return node1.lowest_common_ancestor(node2)
 
-    def ls_all_leaves(self, with_data=1, as_path=1):
+    def ls_all_leaves(self, with_data=1, as_path=1, relative=0):
         """Wrap `Node.ls_all_leaves()`
 
         Args:
@@ -1122,7 +1124,7 @@ class Tree(object):
         Returns:
             list:
         """
-        return self.root.ls_all_leaves(with_data, as_path)
+        return self.root.ls_all_leaves(with_data, as_path, relative)
 
     def render(self, with_id=0, directory_mode=0):
         """Wrap `Node.render()`"""
