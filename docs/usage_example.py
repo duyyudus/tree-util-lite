@@ -13,6 +13,8 @@ from tree_util_lite.diff_interpreter import binary_vcs_diff
 def misc():
     log_info('Create path with data from inputs')
     print(tree.path_with_data('some/path', 'data'))
+    log_info('Separate path and data')
+    print(tree.separate_path_data('some/path/_dx_data'))
 
 
 def build_tree_example():

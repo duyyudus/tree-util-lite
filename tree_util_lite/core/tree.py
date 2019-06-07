@@ -1154,3 +1154,20 @@ def path_with_data(p, d):
     """
     d = '/{}{}'.format(_DATA_DELIMITER, str(d))
     return str(p) + d
+
+
+def separate_path_data(p):
+    """
+    Args:
+        p (str):
+    Returns:
+        2-tuple: (path, data)
+    """
+    p = str(p)
+    if _DATA_DELIMITER not in p:
+        return (p, None)
+    else:
+        p = Path(p)
+        d = p.name[len(_DATA_DELIMITER):]
+        p = p.parent.as_posix()
+        return (p, d)
