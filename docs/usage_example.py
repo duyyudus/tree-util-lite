@@ -10,6 +10,11 @@ from tree_util_lite.core import tree, diff_engine
 from tree_util_lite.diff_interpreter import binary_vcs_diff
 
 
+def misc():
+    log_info('Create path with data from inputs')
+    print(tree.path_with_data('some/path', 'data'))
+
+
 def build_tree_example():
     # From paths
     paths = [
@@ -31,8 +36,17 @@ def build_tree_example():
     log_info()
     log_info('All leaf nodes with data')
     log_info(t.ls_all_leaves())
+    log_info()
     log_info('All leaf nodes relatively without data')
     log_info(t.ls_all_leaves(with_data=0, relative=1))
+    log_info()
+    log_info('Path with data of each node, absolute')
+    for n in t.ls_all_leaves(with_data=1, as_path=0):
+        print(n.path_with_data())
+    log_info()
+    log_info('Path with data of each node, relative')
+    for n in t.ls_all_leaves(with_data=1, as_path=0):
+        print(n.path_with_data(relative=1))
 
     # From dict
     hierarchy = {
@@ -149,3 +163,4 @@ def tree_diff_example():
 if __name__ == '__main__':
     build_tree_example()
     tree_diff_example()
+    misc()

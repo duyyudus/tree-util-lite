@@ -76,6 +76,7 @@ By `tree_util_lite.core.tree.Node`
 * `cut_children()`
 * `lowest_common_ancestor()`
 * `ls_all_leaves()`
+* `path_with_data()`
 
 ## Supported properties/operations on tree
 

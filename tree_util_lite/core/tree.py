@@ -77,6 +77,7 @@ class Node(object):
         cut_children()
         lowest_common_ancestor()
         ls_all_leaves()
+        path_with_data()
 
     """
 
@@ -885,6 +886,18 @@ class Node(object):
                 ret.append(n)
         return ret
 
+    def path_with_data(self, relative=0):
+        """Get path with node data appended as suffix.
+
+        Args:
+            relative (bool):
+        Returns:
+            str:
+        """
+        d = '/{}{}'.format(_DATA_DELIMITER, str(self.data)) if self.data else ''
+        p = Path(*self.path.parts[1:]).as_posix() if relative else self.nice_path
+        return p + d
+
 
 class Tree(object):
     """A generic ordered-tree of Node objects.
@@ -1129,3 +1142,15 @@ class Tree(object):
     def render(self, with_id=0, directory_mode=0):
         """Wrap `Node.render()`"""
         self.root.render(with_id, directory_mode)
+
+
+def path_with_data(p, d):
+    """
+    Args:
+        p (str|Path):
+        d (str):
+    Returns:
+        str:
+    """
+    d = '/{}{}'.format(_DATA_DELIMITER, str(d))
+    return str(p) + d
