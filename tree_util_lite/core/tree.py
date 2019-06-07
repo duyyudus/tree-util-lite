@@ -75,6 +75,8 @@ class Node(object):
         delete()
         cut_parent()
         cut_children()
+        lowest_common_ancestor()
+        ls_all_leaves()
 
     """
 
@@ -905,6 +907,7 @@ class Tree(object):
         insert()
         delete()
         lowest_common_ancestor()
+        ls_all_leaves()
         render()
 
     """

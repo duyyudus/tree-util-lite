@@ -74,6 +74,8 @@ By `tree_util_lite.core.tree.Node`
 * `delete()`
 * `cut_parent()`
 * `cut_children()`
+* `lowest_common_ancestor()`
+* `ls_all_leaves()`
 
 ## Supported properties/operations on tree
 
@@ -97,6 +99,7 @@ By `tree_util_lite.core.tree.Tree`
 * `insert()`
 * `delete()`
 * `lowest_common_ancestor()`
+* `ls_all_leaves()`
 * `render()`
 
 ## Popular usages
