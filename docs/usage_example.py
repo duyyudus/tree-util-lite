@@ -13,14 +13,14 @@ from tree_util_lite.diff_interpreter import binary_vcs_diff
 def build_tree_example():
     # From paths
     paths = [
-        'a/a1/a1a/a1a1',
-        'a/a1/a1a/a1a2',
-        'a/a2/a2a',
-        'b/b1/b1a',
-        'b/b2/b2a',
-        'b/b2/b2b',
-        'c/c1',
-        'c/c2',
+        'a/a1/a1a/a1a1/_dx_0001',
+        'a/a1/a1a/a1a2/_dx_0002',
+        'a/a2/a2a/_dx_0003',
+        'b/b1/b1a/_dx_0004',
+        'b/b2/b2a/_dx_0005',
+        'b/b2/b2b/_dx_0006',
+        'c/c1/_dx_0007',
+        'c/c2/_dx_0008',
     ]
     t = tree.Tree('test_tree', root_name='root', verbose=1)
     t.build_tree(paths)
@@ -29,6 +29,10 @@ def build_tree_example():
     log_info('Render tree in directory mode, without ID')
     t.render(directory_mode=1)
     log_info()
+    log_info('All left nodes with data')
+    log_info(t.ls_all_leaves())
+    log_info('All left nodes without data')
+    log_info(t.ls_all_leaves(with_data=0))
 
     # From dict
     hierarchy = {

@@ -861,6 +861,26 @@ class Node(object):
             if self_ancestor[i] is node_ancestor[i]:
                 return self_ancestor[i]
 
+    def ls_all_leaves(self, with_data, as_path):
+        """List all leaf nodes.
+
+        Args:
+            with_data (bool):
+            as_path (bool):
+        Returns:
+            list:
+        """
+        ret = []
+        for n in self.descendant:
+            if not n.is_leaf:
+                continue
+            if as_path:
+                d = '/{}'.format(_DATA_DELIMITER + str(n.data)) if with_data else ''
+                ret.append(n.nice_path + d)
+            else:
+                ret.append(n)
+        return ret
+
 
 class Tree(object):
     """A generic ordered-tree of Node objects.
@@ -1089,6 +1109,17 @@ class Tree(object):
         check_type(node2, [Node])
 
         return node1.lowest_common_ancestor(node2)
+
+    def ls_all_leaves(self, with_data=1, as_path=1):
+        """Wrap `Node.ls_all_leaves()`
+
+        Args:
+            with_data (bool):
+            as_path (bool):
+        Returns:
+            list:
+        """
+        return self.root.ls_all_leaves(with_data, as_path)
 
     def render(self, with_id=0, directory_mode=0):
         """Wrap `Node.render()`"""
