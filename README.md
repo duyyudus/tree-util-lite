@@ -97,6 +97,7 @@ By `tree_util_lite.core.tree.Tree`
 * `ls()`
 * `search()`
 * `contain_path()`
+* `add_path()`
 * `insert()`
 * `delete()`
 * `lowest_common_ancestor()`

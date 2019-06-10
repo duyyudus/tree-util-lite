@@ -20,6 +20,10 @@ class LabelClashing(TreeUtilError):
     """Label clashing when add child Node."""
 
 
+class PathMustStartFromRoot(TreeUtilError):
+    """Path must start from root."""
+
+
 class Node(object):
     """Represent a node in tree.
 
@@ -525,7 +529,7 @@ class Node(object):
         """Check if `subpath` is under `self` node.
 
         Args:
-            subpath (str or Path): path of sub tree to be appended under `self`
+            subpath (str|Path): path of sub tree to be appended under `self`
         """
 
         subpath = Path(subpath)
@@ -784,7 +788,7 @@ class Node(object):
         `node` will be isolated from its tree ( if any ) before inserted.
 
         Args:
-            node (str or Node): node to be inserted
+            node (str|Node): node to be inserted
                 A new node will be created if a label is provided
             below (bool): insert below `self` instead
                 All children of `self` will be re-parented to new node
@@ -919,6 +923,7 @@ class Tree(object):
         ls()
         search()
         contain_path()
+        add_path()
         insert()
         delete()
         lowest_common_ancestor()
@@ -1067,7 +1072,10 @@ class Tree(object):
         """Check if `path` is in the tree.
 
         Args:
-            path (str or Path): must be absolute path start from `self.root`
+            path (str|Path): must be absolute path start from `self.root`
+        
+        Returns:
+            bool:
         """
 
         check_type(path, [str, Path])
@@ -1077,6 +1085,25 @@ class Tree(object):
             return 0
         else:
             return self.root.contain_subpath(Path(*path.parts[1:]))
+
+    def add_path(self, path):
+        """Add new node to tree using info parsed from `path`.
+
+        Args:
+            path (str|Path): must be absolute path start from `self.root`
+
+        Raises:
+            InvalidType:
+            PathMustStartFromRoot:
+        """
+        check_type(path, [str, Path])
+        path = Path(path)
+
+        if path.parts[0] != self.root.label:
+            raise PathMustStartFromRoot('Path to be added must start from root')
+
+        p = Path(*path.parts[1:])
+        self.root.add_subpath(p)
 
     def insert(self, node, target):
         """Insert `node` into `target`, making `node` the new parent of `target`

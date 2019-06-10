@@ -25,7 +25,7 @@ _log_on = 1
 class TreeUtilError(Exception):
     """Base error for tree-related operations."""
 
-    def __init__(self, message):
+    def __init__(self, message=''):
         super(TreeUtilError, self).__init__()
         self._message = message
         log_error('{}'.format(message))

@@ -35,6 +35,11 @@ def build_tree_example():
     t.render()
     log_info('Render tree in directory mode, without ID')
     t.render(directory_mode=1)
+
+    log_info('Add new path to the tree')
+    t.add_path('root/d/d1/_dx_0009')
+    t.render()
+
     log_info()
     log_info('All leaf nodes with data')
     log_info(t.ls_all_leaves())
