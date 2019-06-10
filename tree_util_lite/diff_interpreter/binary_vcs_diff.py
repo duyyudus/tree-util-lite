@@ -8,6 +8,7 @@ def interpret(diff_data, return_path=1, show_diff=0):
     """Interpret diff data for binary file versioning purpose.
 
     Use `Node.data` as file hash digest to process only nodes contain data.
+    All paths are converted to relative format ( without root )
 
     Args:
         diff_data (core.diff_engine.DiffData): raw diff data from `core.diff_engine.DiffEngine`
@@ -49,8 +50,8 @@ def interpret(diff_data, return_path=1, show_diff=0):
         if b.data:
             if a.data == b.data:
                 data['renamed'][i] = (
-                    a.nice_path if return_path else a,
-                    b.nice_path if return_path else b
+                    a.nice_relative_path if return_path else a,
+                    b.nice_relative_path if return_path else b
                 )
             else:
                 data['added'].append(b)
@@ -64,32 +65,32 @@ def interpret(diff_data, return_path=1, show_diff=0):
             if a.data == b.data:
                 data['unchanged'].append(b)
             else:
-                data['modified'].append(b.nice_path if return_path else b)
+                data['modified'].append(b.nice_relative_path if return_path else b)
 
     # Final extract `moved`, `unchanged`, `modified`, `renamed` from `added` and `deleted` node pairs
     added_rem = []
     deleted_rem = []
     for b in data['added']:
         for a in data['deleted']:
-            if a.nice_path == b.nice_path and a.data == b.data:
+            if a.nice_relative_path == b.nice_relative_path and a.data == b.data:
                 data['unchanged'].append(b)
                 added_rem.append(b)
                 deleted_rem.append(a)
-            elif a.nice_path == b.nice_path and a.data != b.data:
-                data['modified'].append(b.nice_path if return_path else b)
+            elif a.nice_relative_path == b.nice_relative_path and a.data != b.data:
+                data['modified'].append(b.nice_relative_path if return_path else b)
                 added_rem.append(b)
                 deleted_rem.append(a)
             elif a.label == b.label and a.data == b.data:
-                data['moved'][b.nice_path] = (
-                    a.nice_path if return_path else a,
-                    b.nice_path if return_path else b
+                data['moved'][b.nice_relative_path] = (
+                    a.nice_relative_path if return_path else a,
+                    b.nice_relative_path if return_path else b
                 )
                 added_rem.append(b)
                 deleted_rem.append(a)
-            elif a.parent.nice_path == b.parent.nice_path and a.data == b.data:
-                data['renamed'][b.nice_path] = (
-                    a.nice_path if return_path else a,
-                    b.nice_path if return_path else b
+            elif a.parent.nice_relative_path == b.parent.nice_relative_path and a.data == b.data:
+                data['renamed'][b.nice_relative_path] = (
+                    a.nice_relative_path if return_path else a,
+                    b.nice_relative_path if return_path else b
                 )
                 added_rem.append(b)
                 deleted_rem.append(a)
@@ -103,18 +104,18 @@ def interpret(diff_data, return_path=1, show_diff=0):
     for b2 in data['added']:
         for b1 in data['unchanged']:
             if b1.data == b2.data:
-                data['copied'][b2.nice_path] = (
-                    b1.nice_path if return_path else b1,
-                    b2.nice_path if return_path else b2
+                data['copied'][b2.nice_relative_path] = (
+                    b1.nice_relative_path if return_path else b1,
+                    b2.nice_relative_path if return_path else b2
                 )
                 added_rem.append(b2)
     for i in added_rem:
         data['added'].remove(i)
 
     if return_path:
-        data['added'] = [i.nice_path for i in data['added']]
-        data['deleted'] = [i.nice_path for i in data['deleted']]
-        data['unchanged'] = [i.nice_path for i in data['unchanged']]
+        data['added'] = [i.nice_relative_path for i in data['added']]
+        data['deleted'] = [i.nice_relative_path for i in data['deleted']]
+        data['unchanged'] = [i.nice_relative_path for i in data['unchanged']]
 
     if show_diff:
         print('')

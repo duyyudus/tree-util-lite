@@ -42,6 +42,7 @@ class Node(object):
         child_count (int):
         path (Path):
         nice_path (str):
+        nice_relative_path (str):
         depth (int):
         level (int):
         height (int):
@@ -149,6 +150,11 @@ class Node(object):
     def nice_path(self):
         """str: """
         return self.path.as_posix()
+
+    @property
+    def nice_relative_path(self):
+        """str: nice path without root."""
+        return Path(*self.path.parts[1:]).as_posix()
 
     @property
     def depth(self):
@@ -1073,7 +1079,7 @@ class Tree(object):
 
         Args:
             path (str|Path): must be absolute path start from `self.root`
-        
+
         Returns:
             bool:
         """
