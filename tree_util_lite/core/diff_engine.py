@@ -173,21 +173,26 @@ class DiffEngine(object):
         if tree_distance_algo == TreeDistAlgo.DESCENDANT_ALIGNMENT:
             for a, b in self._edit_sequence:
                 if a and not b:
-                    diff['delete'].append(a.nice_path if return_path else a)
+                    diff['delete'].append(a.nice_relative_path if return_path else a)
                 elif not a and b:
-                    diff['insert'].append(b.nice_path if return_path else b)
+                    diff['insert'].append(b.nice_relative_path if return_path else b)
                 elif a and b and a.label != b.label:
-                    if a.parent.nice_path == b.parent.nice_path:
-                        diff['relabel'][b.nice_path] = (a.nice_path, b.nice_path) if return_path else (a, b)
+                    if a.parent and b.parent:
+                        if a.parent.nice_relative_path == b.parent.nice_relative_path:
+                            diff['relabel'][b.nice_relative_path] = (
+                                a.nice_relative_path, b.nice_relative_path
+                            ) if return_path else (a, b)
                     else:
-                        diff['insert'].append(b.nice_path if return_path else b)
-                        diff['delete'].append(a.nice_path if return_path else a)
+                        diff['insert'].append(b.nice_relative_path if return_path else b)
+                        diff['delete'].append(a.nice_relative_path if return_path else a)
                 elif a and b:
-                    if a.nice_path == b.nice_path:
-                        diff['match'][b.nice_path] = (a.nice_path, b.nice_path) if return_path else (a, b)
+                    if a.nice_relative_path == b.nice_relative_path:
+                        diff['match'][b.nice_relative_path] = (
+                            a.nice_relative_path, b.nice_relative_path
+                        ) if return_path else (a, b)
                     else:
-                        diff['insert'].append(b.nice_path if return_path else b)
-                        diff['delete'].append(a.nice_path if return_path else a)
+                        diff['insert'].append(b.nice_relative_path if return_path else b)
+                        diff['delete'].append(a.nice_relative_path if return_path else a)
 
         if show_diff:
             print('')
