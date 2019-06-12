@@ -996,7 +996,7 @@ class Tree(object):
         self.root.set_verbose(verbose)
 
         if check_type(source_data, [list, tuple], raise_exception=0):
-            for p in source_data:
+            for p in sorted(source_data):
                 self.root.add_subpath(p)
         elif check_type(source_data, [dict], raise_exception=0):
             children_queue = [source_data]
