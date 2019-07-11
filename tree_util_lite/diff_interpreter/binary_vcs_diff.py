@@ -95,9 +95,11 @@ def interpret(diff_data, return_path=1, show_diff=0):
                 added_rem.append(b)
                 deleted_rem.append(a)
     for i in added_rem:
-        data['added'].remove(i)
+        if i in data['added']:
+            data['added'].remove(i)
     for i in deleted_rem:
-        data['deleted'].remove(i)
+        if i in data['deleted']:
+            data['deleted'].remove(i)
 
     # Extract `copied`
     added_rem = []
@@ -110,7 +112,8 @@ def interpret(diff_data, return_path=1, show_diff=0):
                 )
                 added_rem.append(b2)
     for i in added_rem:
-        data['added'].remove(i)
+        if i in data['added']:
+            data['added'].remove(i)
 
     if return_path:
         data['added'] = [i.nice_relative_path for i in data['added']]
